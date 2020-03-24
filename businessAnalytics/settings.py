@@ -11,7 +11,6 @@ Contact: https://saijalshakya.com.np
 '''
 import os
 import yaml
-
 credentials = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
