@@ -25,6 +25,7 @@ def services_image(instance, filename):
 class AllServices(models.Model):
     service_name = models.CharField(max_length=255, null=False, blank=False, choices=service_helper.types_of_services, default=1)
     picture = models.ImageField(upload_to=services_image, null=False, blank=False)
+    status = models.BooleanField(choices = service_helper.status, null=False, blank=False, default = False)
 
     def __str__(self):
         return self.service_name
@@ -40,6 +41,7 @@ class service_requested(singletonModel.SingletonModel):
     domain = models.URLField(null=False, blank=False)
     api = models.URLField(null=True, blank=True)
     services = models.ManyToManyField(AllServices, blank=False)
+    server = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return self.company_name

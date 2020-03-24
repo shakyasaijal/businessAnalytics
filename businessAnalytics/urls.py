@@ -18,7 +18,8 @@ from services.admin import super_admin_site
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
-    path('super-admin/', super_admin_site.urls)
+    path('super-admin/', super_admin_site.urls),
+    path('', include('sysManager.urls'))
 ]
 
 

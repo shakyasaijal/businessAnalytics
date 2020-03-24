@@ -29,7 +29,10 @@ INSTALLED_APPS = [
     'ckeditor',
     'ckeditor_uploader',
     'services',
-    'employee'
+    'employee',
+    'inventory',
+    'sysManager',
+    'crmManager'
 ]
 CKEDITOR_UPLOAD_PATH = "uploads/"
 MIDDLEWARE = [
