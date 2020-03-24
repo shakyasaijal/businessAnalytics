@@ -5,6 +5,7 @@ from django.core.files import File
 from datetime import datetime
 import os
 from django.dispatch import receiver
+from helper import services as service_helper
 
 
 def services_image(instance, filename):
@@ -22,7 +23,7 @@ def services_image(instance, filename):
 
 
 class AllServices(models.Model):
-    service_name = models.CharField(max_length=255, null=False, blank=False)
+    service_name = models.CharField(max_length=255, null=False, blank=False, choices=service_helper.types_of_services, default=1)
     picture = models.ImageField(upload_to=services_image, null=False, blank=False)
 
     def __str__(self):
