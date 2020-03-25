@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ckeditor',
     'ckeditor_uploader',
+    'services'
 ]
 CKEDITOR_UPLOAD_PATH = "uploads/"
 MIDDLEWARE = [
