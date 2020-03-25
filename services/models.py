@@ -38,7 +38,7 @@ class service_requested(singletonModel.SingletonModel):
     project_started = models.DateField(auto_now_add=True)
     domain = models.URLField(null=False, blank=False)
     api = models.URLField(null=True, blank=True)
-    services = models.ManyToManyField(AllServices, null=False, blank=False)
+    services = models.ManyToManyField(AllServices, blank=False)
 
     def __str__(self):
         return self.company_name
