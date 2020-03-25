@@ -1,6 +1,6 @@
 user_type = (
-    (1, "Ownership"),
-    (2, "Staff"),
-    (3, "Staff Head"),
-    (4, "Accountant"),
+    ("Ownership", "Ownership"),
+    ("Staff", "Staff"),
+    ("Staff Head", "Staff Head"),
+    ("Accountant", "Accountant"),
 )

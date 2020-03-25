@@ -9,6 +9,8 @@ Development:
 License: Credited
 Contact: https://saijalshakya.com.np
 '''
+
+# /crm
 from django.urls import path, include
 from . import views
 

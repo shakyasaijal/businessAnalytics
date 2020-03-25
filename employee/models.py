@@ -5,6 +5,8 @@ from django.core.files import File
 from datetime import datetime
 import os
 from django.dispatch import receiver
+from inventory import models as inventory_model
+from support import models as support_models
 
 
 def employee_image(instance, filename):
@@ -40,6 +42,7 @@ class Employee(models.Model):
     picture = models.ImageField(upload_to=employee_image, null=True, blank=True)
     department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
     created_on = models.DateTimeField(auto_now_add=True)
+    branch = models.ManyToManyField(support_models.Branches, blank=False)
 
     def __str__(self):
         return self.user.get_full_name()

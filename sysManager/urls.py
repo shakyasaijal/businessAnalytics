@@ -14,5 +14,7 @@ from . import views
 
 urlpatterns = [
     path('', views.index, name="index"),
-    path('crm', include('crmManager.urls')),
+    path('login', views.login_view, name="login_view"),
+    path('login-controller', views.login_controller, name="login_controller"),
+    path('crm/', include('crmManager.urls')),
 ]
