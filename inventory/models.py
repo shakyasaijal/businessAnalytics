@@ -48,7 +48,7 @@ class Product(models.Model):
 
 
 class InventoryUser(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='employee')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='inventory_user')
     user_type = models.CharField(max_length = 50, null=False, blank=False, choices=inventory_helper.user_type)
     contact = models.CharField(max_length=255, null=True, blank=True)
     branch = models.ManyToManyField(Branches, blank=False)

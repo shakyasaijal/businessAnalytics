@@ -1,8 +1,12 @@
 types_of_services = (
-    (1, 'Website'),
-    (2, 'Leave Management System'),
-    (3, 'Human Resource Management System'),
-    (4, 'Inventory Management System'),
-    (5, 'Analytics'),
+    ("Website", 'Website'),
+    ("Leave Management System", 'Leave Management System'),
+    ("Human Resource Management System", 'Human Resource Management System'),
+    ("Inventory Management System", 'Inventory Management System'),
+    ("Analytics", 'Analytics'),
 )
 
+status = (
+    (True, "Activated"),
+    (False, "Deactivated"),
+)
