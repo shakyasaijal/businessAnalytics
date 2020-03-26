@@ -47,6 +47,8 @@ class Employee(models.Model):
     branch = models.ManyToManyField(support_models.Branches, blank=False)
     user_type = MultiSelectField(choices=helper.employee_type)
     staff_head = models.ForeignKey(User, on_delete=models.PROTECT, related_name="employee_staff_head")
+    joined_date = models.DateField(auto_now_add=True, null=True, blank=True)
+    fcm_token = models.CharField(max_length=255, null=True, blank=True)
 
     def __str__(self):
         return self.user.get_full_name()

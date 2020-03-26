@@ -1,5 +1,6 @@
 from django.contrib import admin
 from . import models
+from lms_user import models as lms_model
 
 
 admin.site.register(models.Department)
@@ -8,5 +9,6 @@ class EmployeeAdmin(admin.ModelAdmin):
     readonly_fields = ['image_tag', 'file_tag']
     search_fields = ['get_associated_name', 'contact', 'address', 'phone']
     list_filter = ("department",)
+    
 
 admin.site.register(models.Employee, EmployeeAdmin)

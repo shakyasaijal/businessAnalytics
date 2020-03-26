@@ -33,9 +33,13 @@ INSTALLED_APPS = [
     'employee',
     'sysManager',
     'crmManager',
-    'support'
+    'support',
+    'lms_user',
+    'leave_manager',
 ]
+
 CKEDITOR_UPLOAD_PATH = "uploads/"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
