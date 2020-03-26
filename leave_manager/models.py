@@ -38,8 +38,8 @@ class Leave(models.Model):
 
 class Holiday(models.Model):
     title = models.CharField(max_length=1200, blank=False)
-    from_date = models.DateField(null=False,blank=False, auto_now_add=True)
-    to_date = models.DateField(null=False,blank=False, auto_now_add=True)
+    from_date = models.DateField(null=False,blank=False, auto_now_add=False)
+    to_date = models.DateField(null=False,blank=False, auto_now_add=False)
     description = models.TextField(max_length=1200, blank=False)
     image = models.FileField(upload_to='lms_user/static/lms_user/site-data/holidays', blank=True)
 

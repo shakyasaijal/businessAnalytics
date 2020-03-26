@@ -9,6 +9,8 @@ from pprint import pprint
 from helper.common import manager as helper_manager
 from support import models as support_models
 from django.shortcuts import redirect
+from leave_manager.common import users
+from leave_manager.common import leave_manager
 
 
 import yaml
@@ -76,6 +78,13 @@ def crm_branch(request, slug):
         context.update({"current_branch": branch})
         weather_data = get_weather_data()
         context.update({"weather_data":weather_data[0]})
+
+        upcoming_bday = users.get_birthday_today(branch)["upcoming"]
+        context.update({"upcoming_bday": upcoming_bday})
+        
+        holidays = leave_manager.get_holidays(request)
+        print(holidays)
+        context.update({"holidays": holidays})
 
         return render(request, "crmManager/"+template_version+"/index.html", context=context)
     except (Exception, support_models.Branches.DoesNotExist) as e:

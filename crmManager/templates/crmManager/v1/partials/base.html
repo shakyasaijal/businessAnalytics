@@ -17,6 +17,7 @@
     {% block css %}
     {% endblock css %}
     <link rel="stylesheet" href="{% static 'crmManager/v1/assets/saijal.css' %}"/>
+    <link rel="stylesheet" href="{% static 'crmManager/common/floating/button.css' %}"/>
 </head>
     <body>
         <div class="wrapper">
@@ -31,6 +32,20 @@
                 </div>
             </div>
         </div>
+        <div class="zoom">
+              <a class="zoom-fab zoom-btn-large" id="zoomBtn">
+                  <i class="fa fa-bars" style="color:white;"></i>
+              </a>
+              <ul class="zoom-menu">
+                <li><a class="zoom-fab zoom-btn-sm scale-transition scale-out" href="/" data-toggle="tooltip" data-placement="top" title="Apply Leave">
+                    <i class="fa fa-low-vision"></i>
+                </a></li>
+                <li><a class="zoom-fab zoom-btn-sm  scale-transition scale-out" href="/" data-toggle="tooltip" data-placement="top" title="Apply Compensation">
+                    <i class="fa fa-rocket"></i>
+                </a></li>
+              </ul>
+              
+            </div>
     </body>
     <script src="{% static 'crmManager/v1/assets/js/core/jquery.3.2.1.min.js' %}" type="text/javascript"></script>
     <script src="{% static 'crmManager/v1/assets/js/core/popper.min.js' %}" type="text/javascript"></script>
@@ -46,8 +61,10 @@
             // Javascript method's body can be found in assets/js/demos.js
             demo.initDashboardPageCharts();
             demo.showNotification();
+            $('[data-toggle="tooltip"]').tooltip();   
         });
     </script>
+    <script src="{% static 'crmManager/common/floating/button.js' %}"></script>
     {% block js %}
     {% endblock js %}
 </html>

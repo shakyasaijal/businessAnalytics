@@ -83,6 +83,56 @@
             </div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Birthdays</h4>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_bday %}
+                    <div class="owl-carousel">
+                        {% for data in upcoming_bday %}
+                            <div>
+                                <img src="{{data.image}}"/>
+                                <div class="text-center">
+                                    {{data.full_name}}<br/>
+                                    <small>{% if data.remaining == 0 %} Today {% elif data.remaining == 1 %} 1 day left {% else %} {{data.remaining}} days left {% endif %}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        No Birthday/Upcoming Birthday
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Holidays</h4>
+                </div>
+                <div class="card-body">
+                    {% if holidays %}
+                    <div class="owl-carousel">
+                        {% for data in holidays %}
+                            <div>
+                                <img src="{{data.image}}"/>
+                                <div class="text-center">
+                                    {{data.title}}<br/>
+                                    <small></small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                        No Birthday/Upcoming Birthday
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
 
 {% block js %}
@@ -90,9 +140,9 @@
 <script>
     $(document).ready(function(){
   $(".owl-carousel").owlCarousel({
-    center: true,
+    center: false,
     items:2,
-    loop:true,
+    loop:false,
     margin:20,
     autoplay: true,
     autoplayTimeout:2000,
@@ -108,9 +158,9 @@
             nav:false
         },
         1000:{
-            items:5,
+            items:3,
             nav:false,
-            loop:true
+            loop:false
         }
     }
 });
