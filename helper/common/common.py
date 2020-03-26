@@ -1,3 +1,12 @@
+employee_type = (
+    ("Ownership", "Ownership"),
+    ("Staff", "Staff"),
+    ("Staff Head", "Staff Head"),
+    ("Cashier", "Cashier"),
+    ("Office Head", "Office Head"),
+)
+
+
 def login_field_error_validate(request):
     has_data = 0
     err = []

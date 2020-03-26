@@ -7,6 +7,8 @@ import os
 from django.dispatch import receiver
 from inventory import models as inventory_model
 from support import models as support_models
+from helper.common import common as helper
+from multiselectfield import MultiSelectField
 
 
 def employee_image(instance, filename):
@@ -43,6 +45,8 @@ class Employee(models.Model):
     department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
     created_on = models.DateTimeField(auto_now_add=True)
     branch = models.ManyToManyField(support_models.Branches, blank=False)
+    user_type = MultiSelectField(choices=helper.employee_type)
+    staff_head = models.ForeignKey(User, on_delete=models.PROTECT, related_name="employee_staff_head")
 
     def __str__(self):
         return self.user.get_full_name()
@@ -67,6 +71,9 @@ class Employee(models.Model):
 
     image_tag.short_description = 'Image'
     file_tag.short_description = 'PAN DOC'
+
+    def _branch_(self):
+        return ", ".join([str(p) for p in self.branch.all()])
         
 
 

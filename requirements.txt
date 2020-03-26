@@ -4,3 +4,5 @@ PyYAML==5.3
 Pillow==7.0.0
 mysqlclient==1.4.6
 django-ckeditor==5.9.0
+requests==  2.23.0
+django-multiselectfield==0.1.12

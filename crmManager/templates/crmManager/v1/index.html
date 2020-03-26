@@ -1,0 +1,119 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+<link href="{% static 'crmManager/common/owl-carousel/owl.carousel.min.css' %}" rel="stylesheet" />
+<style>
+    .owl-carousel .owl-item img {
+    display: block;
+    width: 100%;
+    max-height: 110px;
+    min-height: 110px;
+    object-fit: scale-down;
+}
+</style>
+{% endblock css %}
+
+{% block content %}
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">New Employees</h4>
+                </div>
+                <div class="card-body">
+                    {% if new_employee %}
+                    <div class="owl-carousel">
+                        {% for data in new_employee %}
+                            <div>
+                                {% if data.picture %}
+                                    <img src="{{data.picture.url}}"/>
+                                {% else %}
+                                    <img src="https://picsum.photos/200/200"/>
+                                {% endif %}
+                                <div class="text-center">
+                                    {{data.user.get_full_name}}
+                                    <small>{{data.user.date_joined | date:"d, M,Y" }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">WEATHER</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'weather' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <input class="form-control" type="text" name="city_name" placeholder="City Name">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-info btn-fill pull-right">Search</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <b>{{weather_data.city}}</b>
+                            <p>{{weather_data.description | title}}</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <img src="http://openweathermap.org/img/wn/{{ weather_data.icon }}@2x.png" alt="Image">
+                                </div>
+                                <div class="col-md-6">
+                                    <h3 style="margin:16px 0px">{{weather_data.temperature}}&#176; C</h3>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+<script src="{% static 'crmManager/common/owl-carousel/owl.carousel.min.js' %}" type="text/javascript"></script>
+<script>
+    $(document).ready(function(){
+  $(".owl-carousel").owlCarousel({
+    center: true,
+    items:2,
+    loop:true,
+    margin:20,
+    autoplay: true,
+    autoplayTimeout:2000,
+    autoplayHoverPause:true,    
+    responsiveClass:true,
+    responsive:{
+        0:{
+            items:1,
+            nav:false
+        },
+        600:{
+            items:3,
+            nav:false
+        },
+        1000:{
+            items:5,
+            nav:false,
+            loop:true
+        }
+    }
+});
+});
+</script>
+{% endblock js %}

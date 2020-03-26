@@ -16,4 +16,6 @@ from . import views
 
 urlpatterns = [
     path('', views.crm_index, name="crm_index"),
+    path('<slug:slug>', views.crm_branch, name="crm_branch"),
+    path('weather', views.weather, name="weather"),
 ]
