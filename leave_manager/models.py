@@ -1,6 +1,6 @@
 from django.db import models
 from lms_user import models as user_models
-# Create your models here.
+from support import models as support_models
 
 
 class LeaveQuerySet(models.QuerySet):
@@ -41,7 +41,7 @@ class Holiday(models.Model):
     from_date = models.DateField(null=False,blank=False, auto_now_add=False)
     to_date = models.DateField(null=False,blank=False, auto_now_add=False)
     description = models.TextField(max_length=1200, blank=False)
-    image = models.FileField(upload_to='lms_user/static/lms_user/site-data/holidays', blank=True)
+    branch = models.ManyToManyField(support_models.Branches, blank=True, help_text="You can leave blank to choose all branch.")
 
     def __str__(self):
         return '{}'.format(self.title)

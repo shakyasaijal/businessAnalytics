@@ -41,8 +41,7 @@ def get_birthday_today(branch):
     for user in employee_models.Employee.objects.filter(Q(date_of_birth__month__lte=date_after_5_days.month) and Q(date_of_birth__month__gte=today.month), Q(date_of_birth__day__lte=date_after_5_days.day) and Q(date_of_birth__day__gte=today.day) and Q(branch=branch)).order_by("date_of_birth"):
         try:
             image_url = user.picture.url
-        except Exception as e:
-            print(e)
+        except (Exception, ValueError) as e:
             image_url = 'https://picsum.photos/200/200'
         for date in range(0,5):
             if user.date_of_birth.month == month[date] and user.date_of_birth.day == day[date]:

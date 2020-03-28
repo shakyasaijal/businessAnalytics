@@ -1,0 +1,41 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% endblock css %}
+
+{% block content %}
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+    <h4>HELP & SUPPORT</h4>
+    {% if data %}
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Title</th>
+                <th scope="col">Days</th>
+            </tr>
+            </thead>
+            <tbody>
+                {% for d in data %}
+                    <tr>
+                        {% for i in d %}
+                            <th scope="row">{{forloop.counter}}</th>
+                            <td>{{i}}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><small><a href="/">View All ></a></small></td>
+                </tr>
+            </tfoot>
+        </table>
+    {% endif %}
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

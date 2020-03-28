@@ -19,6 +19,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('super-admin/', super_admin_site.urls),
+    path('hrm/', include('hrm.urls')),
     path('', include('sysManager.urls'))
 ]
 

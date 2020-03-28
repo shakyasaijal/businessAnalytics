@@ -4,13 +4,16 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+from django.db.models import Q
 import datetime
+from django.db.models import Count
 from pprint import pprint
 from helper.common import manager as helper_manager
 from support import models as support_models
 from django.shortcuts import redirect
 from leave_manager.common import users
 from leave_manager.common import leave_manager
+from services import models as services_model
 
 
 import yaml
@@ -82,11 +85,32 @@ def crm_branch(request, slug):
         upcoming_bday = users.get_birthday_today(branch)["upcoming"]
         context.update({"upcoming_bday": upcoming_bday})
         
-        holidays = leave_manager.get_holidays(request)
-        print(holidays)
+        holidays = leave_manager.get_holidays(request, branch)
         context.update({"holidays": holidays})
 
         return render(request, "crmManager/"+template_version+"/index.html", context=context)
     except (Exception, support_models.Branches.DoesNotExist) as e:
         print(" No branch slug ", e)
         return HttpResponseRedirect(reverse('crm_index'))
+
+
+@login_required
+def help_support(request):
+    all_service = services_model.AllServices.objects.values_list('status', flat=True)
+    data_ = []
+    in_data = []
+    context = {}
+    for data in all_service:
+        serv = services_model.AllServices.objects.filter(status=data)
+        for d in serv:
+            in_data.append({
+                "name": d.service_name,
+                "expiry": d.expiry_date
+            })
+        data_.append({
+            data: in_data
+        })
+        in_data = []
+    print(data_)
+    context.update({"data": data_})
+    return render(request, "crmManager/"+template_version+"/help.html", context= context)

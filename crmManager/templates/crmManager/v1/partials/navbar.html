@@ -1,4 +1,4 @@
-<!-- Navbar -->
+{% load static %}
 <nav class="navbar navbar-expand-lg " color-on-scroll="500">
     <div class="container-fluid">
         <a class="navbar-brand" href="#pablo"> {{current_branch}} </a>
@@ -23,7 +23,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <a class="dropdown-item" href="#">Notification 1</a>
-                        <a class="dropdown-item" href="#">Notification 2</a>
+                        <a class="dropdown-item" href="#">Notification Notification Notification Notification 2</a>
                         <a class="dropdown-item" href="#">Notification 3</a>
                         <a class="dropdown-item" href="#">Notification 4</a>
                         <a class="dropdown-item" href="#">Another notification</a>
@@ -37,11 +37,7 @@
                 </li>
             </ul>
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="#pablo">
-                        <span class="no-icon">Account</span>
-                    </a>
-                </li>
+                
                 {% if total_branch %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -57,9 +53,25 @@
                     </div>
                 </li>
                 {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="no-icon nav-img">
+                            {% if context_employee.picture.url %}
+                                <img src="{{ context_employee.picture.url }}" class="nav-image"/>
+                            {% else %}
+                                <img src="{% static 'crmManager/common/no-photo.png' %}" class="nav-image"/>
+                            {% endif %}
+                        </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a href="/" class="dropdown-item">Profile</a>
+                        <div class="divider"></div>
+                        <a href="/" class="dropdown-item">Logout</a>
+                    </div>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#pablo">
-                        <span class="no-icon">Log out</span>
+                        <span class="no-icon">Account</span>
                     </a>
                 </li>
             </ul>

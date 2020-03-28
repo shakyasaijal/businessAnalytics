@@ -1,0 +1,57 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% endblock css %}
+
+{% block content %}
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+   <div class="row">
+        <div class="col-md-4">
+            <div class="card" style="width: 18rem;">
+                <div class="card-img-container">
+                    <img class="card-img-top" src="https://picsum.photos/500/500" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                <p class="card-text text-center">Employees</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card" style="width: 18rem;">
+                <div class="card-img-container">
+                    <img class="card-img-top" src="https://picsum.photos/1500/1500" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                <p class="card-text text-center">Payroll</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card" style="width: 18rem;">
+                <div class="card-img-container">
+                    <img class="card-img-top" src="https://picsum.photos/200/500" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                <p class="card-text text-center">Evaluations and Reports</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card" style="width: 18rem;">
+                <div class="card-img-container">
+                    <img class="card-img-top" src="https://picsum.photos/200/500" alt="Card image cap">
+                </div>
+                <div class="card-body">
+                <p class="card-text text-center">Training Management</p>
+                </div>
+            </div>
+        </div>
+   </div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

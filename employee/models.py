@@ -79,6 +79,20 @@ class Employee(models.Model):
         return ", ".join([str(p) for p in self.branch.all()])
         
 
+class Salary(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.PROTECT, related_name="employee_salary")
+    salary = models.IntegerField(null=False, blank=False)
+    month = models.DateField(null=False, blank=False)
+
+    def __str__(self):
+        return self.employee.user.get_full_name()
+
+    class Meta:
+        verbose_name = verbose_name_plural = "Employees Salary"
+
+    def employee_name(self):
+        return self.employee.user.get_full_name()
+
 
 @receiver(models.signals.post_delete, sender=Employee)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

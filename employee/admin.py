@@ -1,6 +1,5 @@
 from django.contrib import admin
 from . import models
-from lms_user import models as lms_model
 
 
 admin.site.register(models.Department)
@@ -12,3 +11,12 @@ class EmployeeAdmin(admin.ModelAdmin):
     
 
 admin.site.register(models.Employee, EmployeeAdmin)
+class LmsAdmin(admin.ModelAdmin):
+    list_display = ('employee_name', 'leave_issuer_name')
+
+
+class SalaryAdmin(admin.ModelAdmin):
+    list_display = ('employee_name', 'salary')
+    search_fields = ('employee_name', 'salary')
+
+admin.site.register(models.Salary, SalaryAdmin)

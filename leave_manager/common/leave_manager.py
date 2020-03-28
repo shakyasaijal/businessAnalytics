@@ -366,16 +366,10 @@ def get_monthly_compensationLeave_detail_of_all_user(user):
     leave = CompensationLeave.objects.order_by("-id").filter(user__in=my_leave_approvees)
     return leave
 
-def get_holidays(request):
-    holidays = leave_models.Holiday.objects.all()
+def get_holidays(request, branch):
+    holidays = leave_models.Holiday.objects.all().order_by("from_date")
     company_holidays = []
     for holiday in holidays:
-        image_url = ''
-        if holiday.image.url:
-            image_url = holiday.image.url
-        else:
-            image_url = 'https://picsum.photos/200/200'
-            
         delta = holiday.from_date - date.today()
 
         from_date_month = holiday.from_date.month
@@ -409,21 +403,24 @@ def get_holidays(request):
             + "-"
             + str(to_date_day)
         )
-
+        holiday_branch = holiday.branch.all()
         if not delta.days < 0:
-            company_holidays.append({
-                'id':holiday.id,
-                'title':holiday.title,
-                'from_date':holiday.from_date,
-                'to_date':holiday.to_date,
-                'days_remaining': delta.days,
-                'description':holiday.description,
-                'image':image_url,
-                'days': get_totalDays_ofEach_holidays(holiday.from_date,holiday.to_date),
-                'from_date_formatted': from_date_formatted,
-                'to_date_formatted': to_date_formatted
-            })
-    return company_holidays
+            if len(holiday_branch) < 1 or branch in holiday_branch:
+                company_holidays.append({
+                    'id':holiday.id,
+                    'title':holiday.title,
+                    'from_date':holiday.from_date,
+                    'to_date':holiday.to_date,
+                    'days_remaining': delta.days,
+                    'description':holiday.description,
+                    'days': get_totalDays_ofEach_holidays(holiday.from_date,holiday.to_date),
+                    'from_date_formatted': from_date_formatted,
+                    'to_date_formatted': to_date_formatted
+                })
+            else:
+                pass
+        holiday_branch = None
+    return company_holidays[:2]
 
 def get_all_holidays(request):
     holidays = Holiday.objects.all()

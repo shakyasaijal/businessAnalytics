@@ -30,12 +30,13 @@ INSTALLED_APPS = [
     'ckeditor_uploader',
     'services',
     'inventory',
+    'leave_manager',
     'employee',
+    'lms_user',
     'sysManager',
     'crmManager',
     'support',
-    'lms_user',
-    'leave_manager',
+    'hrm',
 ]
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
