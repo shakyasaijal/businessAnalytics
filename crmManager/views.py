@@ -14,6 +14,13 @@ from django.shortcuts import redirect
 from leave_manager.common import users
 from leave_manager.common import leave_manager
 from services import models as services_model
+from django.core.cache import cache
+
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 
 import yaml
@@ -79,8 +86,13 @@ def crm_branch(request, slug):
         context = {}
         context.update({"new_employee": employees})
         context.update({"current_branch": branch})
-        weather_data = get_weather_data()
-        context.update({"weather_data":weather_data[0]})
+        weather_ = ''
+        if 'weather' in cache:
+            context.update({"weather_data":cache.get('weather')})
+        else:
+            weather_data = get_weather_data()
+            cache.set('weather', weather_data[0], timeout = CACHE_TTL)
+            context.update({"weather_data":weather_data[0]})
 
         upcoming_bday = users.get_birthday_today(branch)["upcoming"]
         context.update({"upcoming_bday": upcoming_bday})
@@ -111,6 +123,5 @@ def help_support(request):
             data: in_data
         })
         in_data = []
-    print(data_)
     context.update({"data": data_})
     return render(request, "crmManager/"+template_version+"/help.html", context= context)

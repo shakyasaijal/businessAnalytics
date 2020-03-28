@@ -77,3 +77,4 @@ def hr_user_type(request):
         hr = hrm_models.hr_user.objects.get(employee=emp)
         return hr.hr_type
     except (Exception, employee_models.Employee.DoesNotExist, hrm_models.hr_user.DoesNotExist) as e:
+        return ''

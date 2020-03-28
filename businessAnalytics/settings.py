@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
     'ckeditor',
     'ckeditor_uploader',
     'services',
@@ -49,6 +50,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    # ...
+    '127.0.0.1',
+    # ...
 ]
 
 ROOT_URLCONF = 'businessAnalytics.urls'
@@ -81,6 +89,20 @@ DATABASES = {
         'PORT': credentials['db_port']
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": credentials['cache_backend'],
+        "LOCATION": credentials['cache_location'],
+        "OPTIONS": {
+            "CLIENT_CLASS": credentials['client_class']
+        },
+        "KEY_PREFIX": credentials['key_prefix']
+    }
+}
+
+CACHE_TTL = 60 * 1
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

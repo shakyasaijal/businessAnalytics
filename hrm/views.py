@@ -8,6 +8,11 @@ import datetime
 from pprint import pprint
 from services import models as service_models
 from helper.common import manager as common_helper
+from django.conf import settings
+from django.core.cache.backends.base import DEFAULT_TIMEOUT
+from django.views.decorators.cache import cache_page
+
+CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
 
 import yaml
 credential = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
@@ -19,6 +24,7 @@ except Exception as e:
     template_version = 'v1'
 
 @login_required
+@cache_page(CACHE_TTL)
 def hr_index(request):
     if common_helper.has_hrm_service():
         hr_service_expiry = common_helper.is_hrm_expired()
@@ -37,7 +43,9 @@ def hr_index(request):
 
 
 @login_required
+@cache_page(CACHE_TTL)
 def hr_employee(request):
+    
     if common_helper.has_hrm_service():
         hr_service_expiry = common_helper.is_hrm_expired()
         if hr_service_expiry<0:
@@ -46,10 +54,11 @@ def hr_employee(request):
         else:
             if common_helper.has_hrm_access_to_user(request):
                 hr_user_type = common_helper.hr_user_type(request)
-                branches = common_helper.get_current_user_branch(request.user)
-                all_emp = common_helper.get_all_employee_by_branch(branches[0])
                 
-                return render(request, "hrm/"+template_version+"/index.html")
+                branches = common_helper.get_current_user_branch(request.user)
+                all_emp = common_helper.get_all_employee_by_branch(branches[0])     
+                print(all_emp)
+                return render(request, "hrm/"+template_version+"/employee_by_branch.html")
             else:
                 messages.error(request, "You dont have access to HRM. Please contact your HR Manager.")
                 return HttpResponseRedirect(reverse('crm_index'))
