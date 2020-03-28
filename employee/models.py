@@ -38,18 +38,18 @@ class Department(models.Model):
 
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee')
+    department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
+    created_on = models.DateTimeField(auto_now_add=False)
+    date_of_birth = models.DateField(auto_now_add=False)
+    joined_date = models.DateField(auto_now_add=False, null=True, blank=True)
+    branch = models.ManyToManyField(support_models.Branches, blank=False)
     contact = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     pan_document = models.FileField(verbose_name="PAN Document",upload_to="employee/static/employee/pan/", null=True, blank=True)
     picture = models.ImageField(upload_to=employee_image, null=True, blank=True)
-    department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
-    created_on = models.DateTimeField(auto_now_add=False)
-    branch = models.ManyToManyField(support_models.Branches, blank=False)
     user_type = MultiSelectField(choices=helper.employee_type)
     staff_head = models.ForeignKey(User, on_delete=models.PROTECT, related_name="employee_staff_head")
-    joined_date = models.DateField(auto_now_add=False, null=True, blank=True)
     fcm_token = models.CharField(max_length=255, null=True, blank=True)
-    date_of_birth = models.DateField(auto_now_add=False)
 
     def __str__(self):
         return self.user.get_full_name()

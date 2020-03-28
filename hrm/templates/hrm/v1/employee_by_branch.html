@@ -2,6 +2,10 @@
 {% load static %}
 
 {% block css %}
+{% if all_emp %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css"/>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.20/css/dataTables.bootstrap4.min.css"/>
+{% endif %}
 {% endblock css %}
 
 {% block content %}
@@ -9,9 +13,58 @@
     {% include "sysManager/v1/partials/notification.html" %}
 {% endif %}
    <div class="row">
-        
+       <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">All Employees</h4>
+                </div>
+                <div class="card-body">
+                    {% if all_emp %}
+                    <table id="example" class="table table-striped table-bordered" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Full Name</th>
+                                <th>Contact</th>
+                                <th>Department</th>
+                                <th>Branch</th>
+                                <th>Options</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for data in all_emp %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{ data.user.get_full_name }}</td>
+                                    <td>{{ data.contact }}</td>
+                                    <td>{% for d in data.department.all %} {{d}}{% if not forloop.last %}, {% endif %} {% endfor %}</td>
+                                    <td>{% for d in data.branch.all %} {{d}} {% if not forloop.last %}, {% endif %} {% endfor %}</td>
+                                    <td>
+                                        <a href="{% url 'hr_employee_by_id' data.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fa fa-info"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <h4>No Data Found</h4>
+                    {% endif %}
+                </div>
+            </div>
+       </div>
    </div>
 {% endblock content %}
 
 {% block js %}
+{% if all_emp %}
+    <script src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#example').DataTable();
+        } );
+    </script>
+{% endif %}
 {% endblock js %}

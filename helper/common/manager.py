@@ -70,7 +70,6 @@ def get_all_employee_by_branch(branch):
     return emp
 
 
-
 def hr_user_type(request):
     try:
         emp = employee_models.Employee.objects.get(user=request.user)
@@ -78,3 +77,12 @@ def hr_user_type(request):
         return hr.hr_type
     except (Exception, employee_models.Employee.DoesNotExist, hrm_models.hr_user.DoesNotExist) as e:
         return ''
+
+
+def get_employee_by_id(id):
+    emp = employee_models.Employee.objects.none()
+    try:
+        emp = employee_models.Employee.objects.get(id=id)
+        return emp, True
+    except (Exception, employee_models.Employee.DoesNotExist) as e:
+        return emp, False

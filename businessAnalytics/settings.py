@@ -101,7 +101,8 @@ CACHES = {
     }
 }
 
-CACHE_TTL = 60 * 1
+CACHE_TTL = 60 * 0.5      # 15 minute 
+CACHE_MAX_TTL = 60 * 0.5 # 1 hour
 
 AUTH_PASSWORD_VALIDATORS = [
     {

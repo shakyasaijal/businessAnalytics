@@ -15,7 +15,8 @@ from . import views
 
 urlpatterns = [
     path('', views.hr_index, name="hr_index"),
-    path('hr-employee/', views.hr_employee, name="hr_employee"),
+    path('employees/', views.hr_employee, name="hr_employee"),
+    path('employees/<int:id>', views.hr_employee_by_id, name="hr_employee_by_id")
 ]
 
 

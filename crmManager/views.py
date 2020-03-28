@@ -21,6 +21,7 @@ from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 
 CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+CACHE_MAX_TTL = getattr(settings, 'CACHE_MAX_TTL', DEFAULT_TIMEOUT)
 
 
 import yaml
@@ -73,15 +74,28 @@ def weather(request):
 @login_required
 def crm_index(request):
     weather_data = get_weather_data()
-    branch = helper_manager.get_current_user_branch(request.user)
 
-    return redirect('crm_branch', slug=branch[0].slug)
+    current_branch = ''
+    if 'crm_branch_slug' in cache:
+        current_branch = cache.get('crm_branch_slug')
+    else:
+        branch = helper_manager.get_current_user_branch(request.user)
+        current_branch = branch[0].slug
+
+    return redirect('crm_branch', slug=current_branch)
 
 
 @login_required
 def crm_branch(request, slug):
     try:
         branch = support_models.Branches.objects.get(slug=slug)
+        
+        # Add branch to cache as a global state
+        cache.delete('crm_branch')
+        cache.set('crm_branch', branch, timeout=CACHE_MAX_TTL)
+        cache.delete('crm_branch_slug')
+        cache.set('crm_branch_slug', branch.slug, timeout=CACHE_MAX_TTL)
+
         employees = helper_manager.get_new_employee_by_branch(branch)
         context = {}
         context.update({"new_employee": employees})
