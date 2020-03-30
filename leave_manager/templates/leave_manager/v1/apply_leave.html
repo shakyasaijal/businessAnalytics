@@ -1,0 +1,141 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% if data_failed %}
+<style>
+    .card .table tbody td:last-child, .card .table thead th:last-child {
+        padding-right: 15px;
+        display: block;
+    }
+</style>
+{% endif %}
+{% endblock css %}
+
+{% block content %}
+    {% if messages %}
+        {% include "sysManager/v1/partials/notification.html" %}
+    {% endif %}
+    {% if data_failed %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card strpied-tabled-with-hover">
+                    <div class="card-header ">
+                        <h4 class="card-title" style="color:red;">Sorry. Your Leave Cannot Be Sent</h4>
+                        <p class="card-category">Leave Applied On Same Date</p>
+                    </div>
+                    <div class="card-body table-m-height">
+                        <p>You have applied from Date: <b>{{data_failed.from_date|date:'M d-Y'}}</b> to <b>{{data_failed.to_date|date:'M d-Y'}}</b>. But we did found your leave request from same day earlier.</p>
+                        <p>Please go through the section below to see previous leave request with same dates.</p>
+
+                        <div>
+                        </div>
+
+                        <div class="jumbotron">
+                            <p><b>From Date:</b> {{data_failed.data.data.from_date}}</p>
+                            <p><b>To Date:</b> {{data_failed.data.data.to_date}}</p>
+                            <p><b>Leave Reason:</b> {{data_failed.data.data.reason}}</p>
+                            <p><b>Leave For:</b> {% if data_failed.data.data.half_day %} Half Day {% else %} Full Day {% endif %}</p>
+                            <p><b>Leave Dates:</b> {% for data in data_failed.data.list %} {% if data.status %} <b style="color:red">{% endif %}{{data.found|date:'M d-Y'}}{% if data.status %}</b>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+                            <h3>Above Leave Status</h3>
+                            <b>{{data_failed.data.leave_status}}</b>
+                            <p>{% if data_failed.reject_reason %} Reject Reason {{data_failed.reject_reason}} {% endif %}</p>
+                        </div>
+                        <table class="table table-hover table-striped">
+                            <thead>
+                                <th>From Date</th>
+                                <th>To Date</th>
+                                <th>Leave Reason</th>
+                                <th>Dates Found</th>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{data_failed.from_date|date:'M d-Y'}}</td>
+                                    <td>{{data_failed.to_date|date:'M d-Y'}}</td>
+                                    <td style="    max-width: 200px;
+                                    text-align: justify;
+                                    overflow: hidden;">{{ data_failed.data.data.reason |truncatewords:'6' }}</td>
+                                    <td>{% for data in data_failed.data.list %} {% if data.status %} <b style="color:red">{% endif %}{{data.found|date:'M d-Y'}}{% if data.status %}</b>{% endif %}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                                    <!-- <td>{{data_failed.days}}</td> -->
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h4 class="card-title">Apply New Leave</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6 pr-1">
+                                <div class="form-group">
+                                    <label>From Date</label>
+                                    <input type="date" {% if data_failed.from_date %} value="{{data_failed.from_date|date:'Y-m-d'}}" {% endif %} name="from_date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6 pl-1">
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">To Date</label>
+                                    <input type="date" {% if data_failed.to_date %} value="{{data_failed.to_date|date:'Y-m-d'}}" {% endif %} name="to_date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 pr-1">
+                                <div class="form-group">
+                                    <label>Leave Type</label>
+                                    <select class="form-control" name="leave_type">
+                                        {% for data in leave_type %}
+                                            <option value={{data.id}}>{{data}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6 pl-1">
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">Leave For</label>
+                                    <select class="form-control" name="half_leave">
+                                        <option value=1>Half Day Leave</option>
+                                        <option value=2>Full Day Leave</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">Leave Reason</label>
+                                    <textarea name="leave_reason" class="form-control" placeholder="Leave Reason" rows="3"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-success">Apply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title">Recent Applied</h4>
+                </div>
+                <div class="card-body">
+                
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

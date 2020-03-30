@@ -4,61 +4,89 @@ from django.urls import reverse_lazy
 from datetime import datetime, timedelta, date
 from leave_manager import models as leave_models
 from leave_manager.common.send_email_notification import send_email_notification
-from leave_manager.common.user_image import get_image_url
 # from mobile_api.common.fcm import fcm
 from lms_user import models as lms_user_models
 from django.contrib import messages
+from employee import models as employee_models
+from leave_manager.common.send_email_notification import send_email_notification
+from services import models as service_models
+from collections import Counter
 
-def apply_leave(**kwargs):
-    leave_details = kwargs['leave_details']
-    request = kwargs['request']
-    print('YOLO')
+
+def get_lms_user(user):
     try:
-        leave = Leave.objects.create(
-            type=leave_details['leave_type'],
-            from_date=leave_details['from_date'],
-            to_date=leave_details['to_date'],
-            half_day=leave_details['half_day'],
-            reason=leave_details['leave_reason'],
-            user=leave_details['user']
-        )
-        update_details = {
-            'recipient_email': leave_details['issuer'].email,
-            'email_subject': 'LMS | A new Leave Request Has Arrived ',
-            'email_body': '''
-                    Hi {}, A new leave Request has arrived.
-                    From: {}
-                    Leave Type: {}
-                    Half Day: {}
-                    Days: {}
-                    Leave Reason: {}
-                    URL: {}
-                    '''.format(leave_details['issuer'].get_full_name(), leave_details['user'].user.get_full_name(),
-                               leave_details['leave_type'],
-                               leave_details['half_day'],
-                               ((leave_details['to_date'] - leave_details['from_date']).days + 1) * leave_details[
-                                                             'leave_multiplier'],
-                               leave_details['leave_reason'],
-                               'http://{}{}'.format(request.META['HTTP_HOST'],
-                                                    reverse_lazy('leave_manager_leave_requests')))
-        }
-        
-        try:
-            user =lms_user_models.LmsUser.objects.get(user=request.user)
-            leave_issuer = lms_user_models.LmsUser.objects.get(user=leave_details['issuer'])
-            leave_issuer_fcm = leave_issuer.fcm_token
-            print(leave_issuer_fcm)
-            fcm(leave_issuer_fcm,user,leave.id,"leave_apply")
-        except (lms_user_models.LmsUser.DoesNotExist, Exception) as e:
-            print(e)
-        if send_email_notification(update_details=update_details):
-            return True
+        emp = employee_models.Employee.objects.get(user=user)
+        lms = LmsUser.objects.get(employee=emp)
+        return lms, True
+    except (Exception) as e:
+        return '', False
+
+
+def apply_leave(leave_details, request):
+    try:
+        days = ((leave_details['to_date'] - leave_details['from_date']
+                 ).days+1) * leave_details['leave_multiplier']
+
+        weekdays = Counter()
+        from_date = datetime.strptime(request.POST['from_date'], "%Y-%m-%d")
+        to_date = datetime.strptime(request.POST['to_date'], "%Y-%m-%d")
+
+        for i in range((to_date - from_date).days+1):
+            weekdays[(from_date + timedelta(i)).strftime('%a')] += 1
+
+        sat = False
+        deduct = weekdays['Sat']
+
+        if leave_details['half_day']:
+            deduct = deduct/2
+
+        if weekdays['Sat'] > 0:
+            days = days-deduct
+            sat = True
+
+        reason = ''
+        if sat:
+            reason += "There are {} days of Saturday.".format(weekdays['Sat'])
+
+        leave = leave_models.Leave.objects.create(
+            user=leave_details['current_lms_user'], type=leave_details['leave_type'], from_date=leave_details['from_date'],
+            to_date=leave_details['to_date'], half_day=leave_details['half_day'], reason=leave_details['leave_reason'],
+            days=days, leave_on_holiday=deduct, leave_on_holiday_reason=reason)
+        if leave:
+            service_ = service_models.service_requested.objects.first()
+            domain = service_.domain
+            email_details = {
+                'recipient_email': leave_details['issuer'].user.email,
+                'email_subject': 'LMS | A new leave request has arrived',
+                'email_body': '''
+                            Hi {}, A new leave Request has arrived.
+                            From: {}
+                            Leave Type: {}
+                            Half Day: {}
+                            Days: {}
+                            Leave Reason: {}
+                            URL: {}
+                            '''.format(leave_details['issuer'].user.get_full_name(), leave_details['current_lms_user'].employee.user.get_full_name(),
+                                       leave_details['leave_type'], leave_details['half_day'], days, leave_details['leave_reason'], 'http://{}{}'.format(request.META['HTTP_HOST'],
+                                                                                                                                                         reverse_lazy('lms_apply_leave')))
+            }
+            if send_email_notification(update_details=email_details):
+                if sat:
+                    messages.success(
+                        request, "Leave applied successfully. Your {} day of Saturday will not be deducted from your leave.".format(deduct))
+                else:
+                    messages.success(request, "Leave applied successfully.")
+                return True
+            else:
+                leave.delete()
+                return False
         else:
+            return False
+    except (Exception) as e:
+        print("leave_manager > common > leave_manager > line 55 ", e)
+        if leave:
             leave.delete()
             return False
-    except Exception as e:
-        print(e)
-        return False
 
 
 def half_leave_applied(request):
@@ -113,7 +141,7 @@ def get_leave_requests(user):
                     'leave_type': leave_request.type.type,
                     'leave_reason': leave_request.reason,
                     'half_day': leave_request.half_day,
-                    'notification':leave_request.notification
+                    'notification': leave_request.notification
                 }
             )
     return pending_leave_requests
@@ -123,7 +151,7 @@ def get_leave_today():
     leaves_today = []
     for leave_request in Leave.objects.filter(from_date__lte=datetime.today(), to_date__gte=datetime.today(),
                                               leave_pending=False, leave_approved=True):
-        
+
         try:
             image = leave_request.user.image.url.split('/static/')[1]
         except Exception as e:
@@ -181,22 +209,22 @@ def get_user_leave_detail_monthly(lms_user_id, month, user):
         user_detail.update({
             'full_name': lms_user.user.get_full_name(),
             'leaves': monthly_leave,
-            })
+        })
 
         if LmsUser.objects.filter(leave_issuer=user):
             leaves = get_monthly_leave_detail_of_all_user_by_month(month, user)
         else:
-            leaves = get_monthly_leave_detail_by_id_month(lms_user_id,month)
+            leaves = get_monthly_leave_detail_by_id_month(lms_user_id, month)
 
         for leave in leaves:
             monthly_leave.append({
-                'name':leave.user,
+                'name': leave.user,
                 'leave_type': leave.type.type,
                 'from_date': leave.from_date,
                 'to_date': leave.to_date,
                 'days': get_leave_count_monthly(leave, month),
-                'id':leave.id,
-                'leave_pending':leave.leave_pending,
+                'id': leave.id,
+                'leave_pending': leave.leave_pending,
                 'leave_approved': leave.leave_approved
             })
         user_detail.update({
@@ -208,6 +236,7 @@ def get_user_leave_detail_monthly(lms_user_id, month, user):
         print(e)
         return user_detail
 
+
 def get_own_leave_detail_monthly(lms_user_id, month):
     user_detail = {}
     try:
@@ -218,10 +247,10 @@ def get_own_leave_detail_monthly(lms_user_id, month):
         user_detail.update({
             'full_name': lms_user.user.get_full_name(),
             'leaves': monthly_leave,
-            'approved':approved,
-            'rejected':rejected
-            })
-        leaves = get_monthly_leave_detail_by_id_month(lms_user_id,month)
+            'approved': approved,
+            'rejected': rejected
+        })
+        leaves = get_monthly_leave_detail_by_id_month(lms_user_id, month)
         for leave in leaves:
             leave_multiplier = 1
             if leave.half_day:
@@ -231,22 +260,22 @@ def get_own_leave_detail_monthly(lms_user_id, month):
             if leave.leave_approved:
                 approved += 1
             monthly_leave.append({
-                'name':leave.user,
+                'name': leave.user,
                 'leave_type': leave.type.type,
                 'from_date': leave.from_date,
                 'to_date': leave.to_date,
                 'days':  ((leave.to_date - leave.from_date).days + 1) * leave_multiplier,
-                'id':leave.id,
-                'leave_pending':leave.leave_pending,
+                'id': leave.id,
+                'leave_pending': leave.leave_pending,
                 'leave_approved': leave.leave_approved,
                 'reject_reason': leave.reject_reason,
                 'leave_reason': leave.reason,
-                'half_day':leave.half_day,
+                'half_day': leave.half_day,
             })
         user_detail.update({
             'leaves': monthly_leave,
-            'approved':approved,
-            'rejected':rejected
+            'approved': approved,
+            'rejected': rejected
         })
 
         return user_detail
@@ -291,7 +320,8 @@ def approve_leave_request(request, leave_id):
         leave.save()
         try:
             leave_issuer_fcm = user.fcm_token
-            fcm(leave_issuer_fcm,request.user.get_full_name(),leave.id,"approve_leave")
+            fcm(leave_issuer_fcm, request.user.get_full_name(),
+                leave.id, "approve_leave")
         except Exception as e:
             print(e, 'asdf')
         if send_email_notification(update_details=update_details):
@@ -301,6 +331,7 @@ def approve_leave_request(request, leave_id):
     except (Leave.DoesNotExist, Exception) as e:
         print(e)
         return False
+
 
 def reject_leave_request(request, leave_id):
     try:
@@ -327,44 +358,52 @@ def reject_leave_request(request, leave_id):
         leave.save()
         try:
             leave_issuer_fcm = user.fcm_token
-            fcm(leave_issuer_fcm,request.user.get_full_name(),leave.id,"reject_leave")
+            fcm(leave_issuer_fcm, request.user.get_full_name(),
+                leave.id, "reject_leave")
         except Exception as e:
             print(e)
         if send_email_notification(update_details=update_details):
             return True
         else:
             return False
-    except (Leave.DoesNotExist,Exception) as e:
+    except (Leave.DoesNotExist, Exception) as e:
         print(e)
         return False
 
 
 def get_monthly_leave_detail_by_id_month(lms_user_id, month):
-    leave_list = Leave.objects.order_by("-id").filter(from_date__month__gte = 4, user__id=lms_user_id)
+    leave_list = Leave.objects.order_by(
+        "-id").filter(from_date__month__gte=4, user__id=lms_user_id)
     leave = []
     for leaves in leave_list:
         if leaves.from_date.month == 4:
-            if (leaves.from_date.day<14 and leaves.to_date.day>=14) or leaves.from_date.day>=14:
+            if (leaves.from_date.day < 14 and leaves.to_date.day >= 14) or leaves.from_date.day >= 14:
                 leave.append(leaves)
         else:
             leave.append(leaves)
     return leave
 
+
 def get_monthly_compensationLeave_detail(lms_user_id, month):
-    leave = Leave.objects.order_by("-id").filter(from_date__month=month, user__id=lms_user_id)
+    leave = Leave.objects.order_by(
+        "-id").filter(from_date__month=month, user__id=lms_user_id)
     return leave
 
 
 def get_monthly_leave_detail_of_all_user_by_month(month, user):
     # leave = Leave.objects.order_by("-id").filter(from_date__month=month)
     my_leave_approvees = LmsUser.objects.filter(leave_issuer=user)
-    leave = Leave.objects.order_by("-id").filter(user__in=my_leave_approvees, from_date__month=month)
+    leave = Leave.objects.order_by(
+        "-id").filter(user__in=my_leave_approvees, from_date__month=month)
     return leave
+
 
 def get_monthly_compensationLeave_detail_of_all_user(user):
     my_leave_approvees = LmsUser.objects.filter(leave_issuer=user)
-    leave = CompensationLeave.objects.order_by("-id").filter(user__in=my_leave_approvees)
+    leave = CompensationLeave.objects.order_by(
+        "-id").filter(user__in=my_leave_approvees)
     return leave
+
 
 def get_holidays(request, branch):
     holidays = leave_models.Holiday.objects.all().order_by("from_date")
@@ -407,13 +446,13 @@ def get_holidays(request, branch):
         if not delta.days < 0:
             if len(holiday_branch) < 1 or branch in holiday_branch:
                 company_holidays.append({
-                    'id':holiday.id,
-                    'title':holiday.title,
-                    'from_date':holiday.from_date,
-                    'to_date':holiday.to_date,
+                    'id': holiday.id,
+                    'title': holiday.title,
+                    'from_date': holiday.from_date,
+                    'to_date': holiday.to_date,
                     'days_remaining': delta.days,
-                    'description':holiday.description,
-                    'days': get_totalDays_ofEach_holidays(holiday.from_date,holiday.to_date),
+                    'description': holiday.description,
+                    'days': get_totalDays_ofEach_holidays(holiday.from_date, holiday.to_date),
                     'from_date_formatted': from_date_formatted,
                     'to_date_formatted': to_date_formatted
                 })
@@ -422,11 +461,12 @@ def get_holidays(request, branch):
         holiday_branch = None
     return company_holidays[:2]
 
+
 def get_all_holidays(request):
     holidays = Holiday.objects.all()
     company_holidays = []
     for holiday in holidays:
-        image_url = get_image_url(None,request,'holiday',holiday.id)
+        image_url = get_image_url(None, request, 'holiday', holiday.id)
         delta = holiday.from_date - date.today()
 
         from_date_month = holiday.from_date.month
@@ -462,29 +502,30 @@ def get_all_holidays(request):
         )
 
         company_holidays.append({
-            'id':holiday.id,
-            'title':holiday.title,
-            'from_date':holiday.from_date,
-            'to_date':holiday.to_date,
+            'id': holiday.id,
+            'title': holiday.title,
+            'from_date': holiday.from_date,
+            'to_date': holiday.to_date,
             'days_remaining': delta.days,
-            'description':holiday.description,
-            'image':image_url,
-            'days': get_totalDays_ofEach_holidays(holiday.from_date,holiday.to_date),
+            'description': holiday.description,
+            'image': image_url,
+            'days': get_totalDays_ofEach_holidays(holiday.from_date, holiday.to_date),
             'from_date_formatted': from_date_formatted,
             'to_date_formatted': to_date_formatted
         })
     return company_holidays
 
 
-
-def get_totalDays_ofEach_holidays(from_date,to_date):
+def get_totalDays_ofEach_holidays(from_date, to_date):
     delta = to_date-from_date
     return delta.days+1
+
 
 def get_all_leaves_unseen():
     leave = Leave.objects.filter(notification=True).count()
     print(leave)
     return leave
+
 
 def apply_CompensationLeave(**kwargs):
     leave_details = kwargs['leave_details']
@@ -492,7 +533,7 @@ def apply_CompensationLeave(**kwargs):
     try:
         leave = CompensationLeave.objects.create(
             reason=leave_details['leave_reason'],
-            days = leave_details['days'],
+            days=leave_details['days'],
             user=leave_details['user']
         )
         update_details = {
@@ -511,10 +552,11 @@ def apply_CompensationLeave(**kwargs):
         }
         try:
             user = lms_user_models.LmsUser.objects.get(user=request.user)
-            leave_issuer = lms_user_models.LmsUser.objects.get(user=leave_details['issuer'])
+            leave_issuer = lms_user_models.LmsUser.objects.get(
+                user=leave_details['issuer'])
             leave_issuer_fcm = leave_issuer.fcm_token
-            fcm(leave_issuer_fcm,user,leave.id,"compensation_apply")
-        except (lms_user_models.LmsUser.DoesNotExist,Exception) as e:
+            fcm(leave_issuer_fcm, user, leave.id, "compensation_apply")
+        except (lms_user_models.LmsUser.DoesNotExist, Exception) as e:
             print(e)
         if send_email_notification(update_details=update_details):
             return True
@@ -536,8 +578,8 @@ def get_compensationLeave_requests(user):
                 'full_name': leave_request.user.user.get_full_name(),
                 'department': leave_request.user.department.department,
                 'leave_reason': leave_request.reason,
-                'days':leave_request.days,
-                'notification':leave_request.notification
+                'days': leave_request.days,
+                'notification': leave_request.notification
             }
         )
     return pending_leave_requests
@@ -574,16 +616,17 @@ def reject_compensationLeave_request(request, leave_id):
                     Hi {}, Your Leave Request Has just been rejected by {}.
                     Days: {}
                     Leave Reason: {}
-                    '''.format(user.user.get_full_name(), request.user.get_full_name(), 
+                    '''.format(user.user.get_full_name(), request.user.get_full_name(),
                                leave_detail['days'], leave_detail['leave_reason'])
         }
         leave.save()
         try:
             leave_issuer_fcm = user.fcm_token
-            fcm(leave_issuer_fcm,request.user.get_full_name(),leave.id,"reject_compensation")
+            fcm(leave_issuer_fcm, request.user.get_full_name(),
+                leave.id, "reject_compensation")
         except Exception as e:
             print(e)
-        
+
         if send_email_notification(update_details=update_details):
             return True
         else:
@@ -591,6 +634,7 @@ def reject_compensationLeave_request(request, leave_id):
     except Exception as e:
         print(e)
         return False
+
 
 def get_compensationLeave_detail(leave):
     try:
@@ -615,7 +659,7 @@ def approve_compensationLeave_request(request, leave_id):
         leave_detail = get_compensationLeave_detail(leave)
         user = leave_detail['lms_user']
         user.compensation_leave += leave_detail['days']
-           
+
         update_details = {
             'recipient_email': user.user.email,
             'email_subject': 'LMS | Your Compensation Leave Request Has Been Approved',
@@ -630,7 +674,8 @@ def approve_compensationLeave_request(request, leave_id):
         leave.save()
         try:
             leave_issuer_fcm = user.fcm_token
-            fcm(leave_issuer_fcm,request.user.get_full_name(),leave.id,"approve_compensation")
+            fcm(leave_issuer_fcm, request.user.get_full_name(),
+                leave.id, "approve_compensation")
         except Exception as e:
             print(e)
         if send_email_notification(update_details=update_details):
@@ -650,17 +695,16 @@ def get_own_compensationLeave_detail_monthly(lms_user_id):
         user_detail.update({
             'full_name': lms_user.user.get_full_name(),
             'leaves': monthly_leave,
-            })
+        })
 
-        
         leaves = get_monthly_compensationLeave_detail_by_id_month(lms_user.id)
 
         for leave in leaves:
             monthly_leave.append({
-                'name':leave.user,
+                'name': leave.user,
                 'days': leave.days,
-                'id':leave.id,
-                'leave_pending':leave.leave_pending,
+                'id': leave.id,
+                'leave_pending': leave.leave_pending,
                 'leave_approved': leave.leave_approved
             })
         user_detail.update({
@@ -668,7 +712,7 @@ def get_own_compensationLeave_detail_monthly(lms_user_id):
         })
 
         return user_detail
-    except (LmsUser.DoesNotExist,Exception) as e:
+    except (LmsUser.DoesNotExist, Exception) as e:
         print(e)
         return user_detail
 
@@ -686,7 +730,7 @@ def get_user_compensationLeave_detail(lms_user_id, user):
         user_detail.update({
             'full_name': lms_user.user.get_full_name(),
             'leaves': monthly_leave,
-            })
+        })
 
         if LmsUser.objects.filter(leave_issuer=user):
             leaves = get_monthly_compensationLeave_detail_of_all_user(user)
@@ -695,10 +739,10 @@ def get_user_compensationLeave_detail(lms_user_id, user):
 
         for leave in leaves:
             monthly_leave.append({
-                'name':leave.user,
+                'name': leave.user,
                 'days': leave.days,
-                'id':leave.id,
-                'leave_pending':leave.leave_pending,
+                'id': leave.id,
+                'leave_pending': leave.leave_pending,
                 'leave_approved': leave.leave_approved
             })
         user_detail.update({
@@ -711,7 +755,7 @@ def get_user_compensationLeave_detail(lms_user_id, user):
         return user_detail
 
 
-def get_users_leaveDetailFor_searchEngine(my_leave_approvees,from_date,to_date):
+def get_users_leaveDetailFor_searchEngine(my_leave_approvees, from_date, to_date):
     """
         Parameter
         ---------------------------------------------
@@ -744,7 +788,8 @@ def get_users_leaveDetailFor_searchEngine(my_leave_approvees,from_date,to_date):
         leave_multiplier = 1
         if leave.half_day:
             leave_multiplier = 0.5
-        total_days = ((leave.to_date - leave.from_date).days + 1) * leave_multiplier
+        total_days = ((leave.to_date - leave.from_date).days +
+                      1) * leave_multiplier
 
         if leave.user.user.get_full_name() in name_list:
             name_list[leave.user.user.get_full_name()] = {
@@ -753,8 +798,8 @@ def get_users_leaveDetailFor_searchEngine(my_leave_approvees,from_date,to_date):
             }
         else:
             name_list[leave.user.user.get_full_name()] = {
-                'id':leave.user.user.id,
-                'total_days':total_days
+                'id': leave.user.user.id,
+                'total_days': total_days
             }
 
     return name_list
@@ -767,32 +812,31 @@ def get_data(leave_of_lmsUser):
         multiplier = 1
         if leave.half_day:
             multiplier = 0.5
-        
+
         data.append({
-            'from':leave.from_date,
-            'to':leave.to_date,
-            'half_day':leave.half_day,
+            'from': leave.from_date,
+            'to': leave.to_date,
+            'half_day': leave.half_day,
             'total_days': ((leave.to_date - leave.from_date).days + 1) * multiplier,
         })
 
     return data
 
 
-def check_leave_date(request,leave):
-    if leave.from_date >=  date.today():
+def check_leave_date(request, leave):
+    if leave.from_date >= date.today():
         return True
     else:
         return False
-        
+
+
 def has_leave(user):
     sick_leave = user.sick_leave
     annual_leave = user.annual_leave
 
-    data  = {
+    data = {
         "sick_leave": sick_leave,
         "annual_leave": annual_leave
-    }    
+    }
 
     return data
-    
-

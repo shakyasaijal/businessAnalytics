@@ -26,3 +26,13 @@
     height: 100%;
     object-fit: scale-down;
 }
+
+.table-m-height{
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.table-min-height{
+    max-height: 190px;
+    overflow-y: scroll;
+}

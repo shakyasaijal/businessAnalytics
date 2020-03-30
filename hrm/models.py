@@ -5,7 +5,7 @@ from support import models as support_models
 
 
 class hr_user(models.Model):
-    employee = models.ForeignKey(employee_models.Employee, related_name="hr_employee", on_delete=models.PROTECT)
+    employee = models.ForeignKey(employee_models.Employee, related_name="hr_employee", on_delete=models.CASCADE)
     hr_type = models.CharField(max_length = 255, null=False, blank=False, choices=hrm_helper.hr_type)
     branch = models.ManyToManyField(support_models.Branches, related_name="hr_branch", blank=True)
 
@@ -26,7 +26,7 @@ class hr_user(models.Model):
 
 
 class Payroll(models.Model):
-    employee = models.ForeignKey(employee_models.Employee, related_name="payroll_employee", on_delete=models.PROTECT)
+    employee = models.ForeignKey(employee_models.Employee, related_name="payroll_employee", on_delete=models.CASCADE)
     month = models.DateField(null=False, blank=False)
     is_paid = models.BooleanField(null=False, blank=False, default=False) #False = not paid, True = paid
 

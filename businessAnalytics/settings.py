@@ -102,7 +102,7 @@ CACHES = {
 }
 
 CACHE_TTL = 60 * 0.5      # 15 minute 
-CACHE_MAX_TTL = 60 * 0.5 # 1 hour
+CACHE_MAX_TTL = 60 * 60 # 1 hour
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -139,3 +139,4 @@ EMAIL_HOST_USER = credentials['_email']
 EMAIL_HOST_PASSWORD = credentials['_password']
 EMAIL_PORT = credentials['smtp_port']
 EMAIL_USE_SSL = credentials['EMAIL_USE_SSL']
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

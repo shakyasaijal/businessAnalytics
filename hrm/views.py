@@ -38,7 +38,7 @@ def hr_index(request):
             messages.error(request, "Your HRM service has been expired. Please renew or activate the service. Thank You. <a href='/'>Get Help</a>")
             return HttpResponseRedirect(reverse('crm_index'))
         else:
-            if common_helper.has_hrm_access_to_user(request):
+            if common_helper.has_hrm_access_to_user(request.user)[1]:
                 if 'crm_branch' not in cache:
                     redis.set_crm_branch(request)
 
@@ -60,7 +60,7 @@ def hr_employee(request):
             messages.error(request, "Your HRM service has been expired. Please renew or activate the service. Thank You. <a href='/'>Get Help</a>")
             return HttpResponseRedirect(reverse('crm_index'))
         else:
-            if common_helper.has_hrm_access_to_user(request):
+            if common_helper.has_hrm_access_to_user(request.user)[1]:
                 
                 context = {}
                 if 'crm_branch' not in cache:
@@ -91,8 +91,8 @@ def hr_employee_by_id(request, id):
             messages.error(request, "Your HRM service has been expired. Please renew or activate the service. Thank You. <a href='/'>Get Help</a>")
             return HttpResponseRedirect(reverse('crm_index'))
         else:
-            if common_helper.has_hrm_access_to_user(request):
-                
+            hrm_access = common_helper.has_hrm_access_to_user(request.user)
+            if hrm_access[1]:
                 context = {}
                 if 'crm_branch' not in cache:
                     redis.set_crm_branch(request)
@@ -119,6 +119,7 @@ def hr_employee_by_id(request, id):
                 except (Exception, ValueError):
                     pass
 
+
                 all_departments = employee_models.Department.objects.all()
                 emp_dep = [data.id for data in all_emp[0].department.all()]
                 department_ = []
@@ -144,6 +145,19 @@ def hr_employee_by_id(request, id):
                     })
                     status = False
                 user_type = common.employee_type
+                user_type_ = []
+                for data in user_type:
+                    if data[0] in all_emp[0].user_type:
+                        status = True
+                    user_type_.append({
+                        "status": status,
+                        "data": data[0]
+                    })
+                    status = False
+                
+                
+                salary_info = common_helper.get_employee_salary_details(all_emp[0])
+                context.update({"salary_info": salary_info})
 
                 user_data = [{
                     "first_name": all_emp[0].user.first_name,
@@ -153,19 +167,26 @@ def hr_employee_by_id(request, id):
                     "contact": all_emp[0].contact,
                     "address": all_emp[0].address,
                     "pan": pan,
-                    "user_type": all_emp[0].user_type,
                     "username": all_emp[0].user.username,
                     "email": all_emp[0].user.email,
                     "staff_head": all_emp[0].staff_head,
                     'pic': pic,
-                    "department": all_emp[0].department.all(),
-                    "branch": all_emp[0].branch.all(),
                     "all_departments": department_,
                     "all_branches": branch_,
-                    "user_types": user_type
+                    "user_type": user_type_
                 }]
 
                 context.update({"emp_data": user_data[0]})
+
+                hrm_access = common_helper.has_hrm_access_to_user(request.user)
+                access_val = ""
+                if hrm_access[1]:
+                    access_val = hrm_access[0].hr_type
+                else:
+                    access_val = "No"
+                context.update({
+                    "hrm_access": access_val
+                })
 
                 return render(request, "hrm/"+template_version+"/employee_details.html", context=context)
             else:

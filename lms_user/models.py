@@ -20,6 +20,6 @@ class LmsUser(models.Model):
         if self.leave_issuer:
             leave_issuer = self.leave_issuer.user.get_full_name()
         else:
-            leave_issuer = self.employee.staff_head.get_full_name()
+            leave_issuer = self.employee.staff_head.user.get_full_name()
         return leave_issuer
         

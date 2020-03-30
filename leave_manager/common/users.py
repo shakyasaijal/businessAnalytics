@@ -4,28 +4,28 @@ from datetime import datetime, timedelta
 from django.db.models import Q
 from calendar import monthrange
 
-def get_lms_users():
-    users = []
-    for lms_user in LmsUser.objects.all():
-        try:
-            image_url = lms_user.image.url.split('/static/')[1]
-        except Exception as e:
-            print(e)
-            image_url = 'lms_user/images/photograph.png'
-        users.append({
-            'id':lms_user.user.id,
-            'full_name': lms_user.user.get_full_name(),
-            'username': lms_user.user.username,
-            'phone_number': lms_user.phone_number,
-            'email': lms_user.user.email,
-            'department': lms_user.department.department,
-            'leave_issuer': lms_user.leave_issuer.get_full_name(),
-            'leave_issuer_id':lms_user.leave_issuer.id,
-            'date_of_birth': str(lms_user.date_of_birth),
-            'joined_date': str(lms_user.joined_date),
-            'image': image_url
-        })
-    return users
+# def get_lms_users():
+#     users = []
+#     for lms_user in LmsUser.objects.all():
+#         try:
+#             image_url = lms_user.image.url.split('/static/')[1]
+#         except Exception as e:
+#             print(e)
+#             image_url = 'lms_user/images/photograph.png'
+#         users.append({
+#             'id':lms_user.user.id,
+#             'full_name': lms_user.user.get_full_name(),
+#             'username': lms_user.user.username,
+#             'phone_number': lms_user.phone_number,
+#             'email': lms_user.user.email,
+#             'department': lms_user.department.department,
+#             'leave_issuer': lms_user.leave_issuer.get_full_name(),
+#             'leave_issuer_id':lms_user.leave_issuer.id,
+#             'date_of_birth': str(lms_user.date_of_birth),
+#             'joined_date': str(lms_user.joined_date),
+#             'image': image_url
+#         })
+#     return users
 
 
 def get_birthday_today(branch):

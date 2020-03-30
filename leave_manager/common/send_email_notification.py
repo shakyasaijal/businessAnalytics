@@ -3,11 +3,12 @@ import smtplib
 from email.mime.text import MIMEText
 
 
-def send_email_notification(update_details):
-    credentials = yaml.load(open('credentials.yaml'))
 
-    sender = credentials['lms_admin_email']
-    password = credentials['lms_admin_password']
+def send_email_notification(update_details):
+    credentials = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
+
+    sender = credentials['_email']
+    password = credentials['_password']
     recipient = update_details['recipient_email']
 
     # Create messageget_user

@@ -3,6 +3,8 @@ from support import models as support_models
 from services import models as service_models
 from datetime import datetime
 from hrm import models as hrm_models
+from leave_manager import models as leave_models
+from lms_user import models as lms_user_model
 
 
 def get_current_user_branch(user):
@@ -56,14 +58,14 @@ def is_hrm_expired():
     return delta.days
 
 
-def has_hrm_access_to_user(request):   
+def has_hrm_access_to_user(user):   
     try:
-        employee = employee_models.Employee.objects.get(user=request.user)
+        employee = employee_models.Employee.objects.get(user=user)
         user = hrm_models.hr_user.objects.get(employee=employee)
-        return True
+        return user, True
     except (Exception, hrm_models.hr_user.DoesNotExist, employee_models.Employee.DoesNotExist) as e:
         print(e)
-        return False
+        return '', False
 
 def get_all_employee_by_branch(branch):
     emp = employee_models.Employee.objects.filter(branch=branch)
@@ -86,3 +88,19 @@ def get_employee_by_id(id):
         return emp, True
     except (Exception, employee_models.Employee.DoesNotExist) as e:
         return emp, False
+
+
+def get_employee_salary_details(employee):
+    salary = employee_models.Salary.objects.filter(employee=employee).order_by("-month")
+    return salary
+
+
+def has_lms_access(user):
+    try:
+        employee = employee_models.Employee.objects.get(user=user)
+        lms = lms_user_model.LmsUser.objects.get(employee=employee)
+        return lms, True
+    except (Exception, employee_models.Employee.DoesNotExist) as e:
+        print(e)
+        return '' , False
+
