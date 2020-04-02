@@ -4,7 +4,7 @@ from employee import models as employee_models
 
 class LmsUser(models.Model):
     employee = models.OneToOneField(employee_models.Employee, on_delete=models.CASCADE, related_name = "lms_employee")
-    leave_issuer = models.ForeignKey(employee_models.Employee, on_delete=models.CASCADE, related_name="lms_issuer", null=True, blank=True, help_text="If blanked, staff head will be leave issuer.")
+    leave_issuer = models.ForeignKey(employee_models.Employee, on_delete=models.CASCADE, related_name="lms_issuer", null=False, blank=False, help_text="If blanked, staff head will be leave issuer.")
 
     def __str__(self):
         return self.employee.user.get_full_name()

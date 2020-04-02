@@ -16,6 +16,13 @@
     {% if messages %}
         {% include "sysManager/v1/partials/notification.html" %}
     {% endif %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'crm_index' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lms_index' %}">Leave Management System</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Apply Leave</li>
+        </ol>
+    </nav>
     {% if data_failed %}
         <div class="row">
             <div class="col-md-12">
@@ -75,36 +82,36 @@
                     </div>
                     <div class="card-body">
                         <div class="row">
-                            <div class="col-md-6 pr-1">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label>From Date</label>
-                                    <input type="date" {% if data_failed.from_date %} value="{{data_failed.from_date|date:'Y-m-d'}}" {% endif %} name="from_date" class="form-control">
+                                    <input type="date" {% if old_from_date %} value="{{old_from_date|date:'Y-m-d'}}" {% endif %} {% if data_failed.from_date %} value="{{data_failed.from_date|date:'Y-m-d'}}" {% endif %} name="from_date" class="form-control">
                                 </div>
                             </div>
-                            <div class="col-md-6 pl-1">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">To Date</label>
-                                    <input type="date" {% if data_failed.to_date %} value="{{data_failed.to_date|date:'Y-m-d'}}" {% endif %} name="to_date" class="form-control">
+                                    <input type="date" {% if old_to_date %} value="{{old_to_date|date:'Y-m-d'}}" {% endif %} {% if data_failed.to_date %} value="{{data_failed.to_date|date:'Y-m-d'}}" {% endif %} name="to_date" class="form-control">
                                 </div>
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-md-6 pr-1">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Leave Type</label>
                                     <select class="form-control" name="leave_type">
                                         {% for data in leave_type %}
-                                            <option value={{data.id}}>{{data}}</option>
+                                            <option value={{data.id}} {% if old_leave_type == data.id %} selected {% endif %}>{{data}}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6 pl-1">
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Leave For</label>
                                     <select class="form-control" name="half_leave">
-                                        <option value=1>Half Day Leave</option>
-                                        <option value=2>Full Day Leave</option>
+                                        <option value=1 {% if old_half == 1 %} selected {% endif %}>Half Day Leave</option>
+                                        <option value=2 {% if old_half == 2 %} selected {% endif %}>Full Day Leave</option>
                                     </select>
                                 </div>
                             </div>
@@ -113,13 +120,13 @@
                             <div class="col-md-12">
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Leave Reason</label>
-                                    <textarea name="leave_reason" class="form-control" placeholder="Leave Reason" rows="3"></textarea>
+                                    <textarea name="leave_reason" class="form-control" placeholder="Leave Reason" rows="3">{% if old_reason %}{{old_reason}}{% endif %}</textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="card-footer">
-                        <button type="submit" class="btn btn-success">Apply</button>
+                        <button type="submit" class="btn btn-success btn-sm">Apply</button>
                     </div>
                 </form>
             </div>

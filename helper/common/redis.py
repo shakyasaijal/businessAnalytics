@@ -5,8 +5,8 @@ from django.views.decorators.cache import cache_page
 from django.core.cache import cache
 
 
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-CACHE_MAX_TTL = getattr(settings, 'CACHE_MAX_TTL', DEFAULT_TIMEOUT)
+CACHE_TTL = getattr(settings, 'CACHE_TTL', settings.CACHE_TTL)
+CACHE_MAX_TTL = getattr(settings, 'CACHE_MAX_TTL', settings.CACHE_MAX_TTL)
 
 
 

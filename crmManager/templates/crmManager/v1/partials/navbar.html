@@ -16,11 +16,33 @@
                     </a>
                 </li>
                 <li class="dropdown nav-item">
-                    <a href="#" class="dropdown-toggle nav-link" data-toggle="dropdown">
+                    <a href="!#" id="g_notification" class="dropdown-toggle nav-link" data-toggle="dropdown">
                         <i class="nc-icon nc-planet"></i>
-                        <span class="notification">5</span>
+                        {% if cn_count > 0 %}<span class="notification" id="notification"> {{cn_count}} </span>{% endif %}
                         <span class="d-lg-none">Notification</span>
                     </a>
+                    <script src="https://js.pusher.com/5.1/pusher.min.js"></script>
+                    <script>
+                        // Enable pusher logging - don't include this in production
+                        Pusher.logToConsole = false;
+                        let x = document.getElementById("myAudio");
+
+                        var pusher = new Pusher('d3c5e0defe6e6e9c77f8', {
+                        cluster: 'us2',
+                        forceTLS: true
+                        });
+
+                        var channel = pusher.subscribe('leave-channel');
+
+                        channel.bind('leave-approve',  function(data) {
+                            console.log(typeof "{{request.user.id}}", typeof JSON.stringify(data.applied_to_id))
+                            if("{{request.user.id}}" == JSON.stringify(data.applied_to_id))
+                            {
+                                let currentNot = document.getElementById("notification").innerHTML
+                                document.getElementById("notification").innerHTML = parseInt(currentNot) + 1;
+                            }
+                        });
+                    </script>
                     <ul class="dropdown-menu">
                         <a class="dropdown-item" href="#">Notification 1</a>
                         <a class="dropdown-item" href="#">Notification Notification Notification Notification 2</a>
@@ -77,5 +99,14 @@
             </ul>
         </div>
     </div>
+    <script src="{% static 'crmManager/v1/assets/js/core/jquery.3.2.1.min.js' %}" type="text/javascript"></script>
+    <script>
+        $(document).ready(function(){
+            document.getElementById("g_notification").addEventListener("click",()=>{
+                let csrf_token = "{{csrf_token}}";
+                get_notification(csrf_token)
+            });
+        })
+    </script>
 </nav>
 <!-- End Navbar -->

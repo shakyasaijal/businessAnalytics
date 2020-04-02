@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from django.db.models import Q
+from django.http import JsonResponse
 import datetime
 from django.db.models import Count
 from pprint import pprint
@@ -14,14 +15,17 @@ from django.shortcuts import redirect
 from leave_manager.common import users
 from leave_manager.common import leave_manager
 from services import models as services_model
-from django.core.cache import cache
+from employee import models as employee_models
+from notifications import models as notification_models
 
+from django.core.cache import cache
 from django.conf import settings
+from helper.common import redis
 from django.core.cache.backends.base import DEFAULT_TIMEOUT
 from django.views.decorators.cache import cache_page
 
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
-CACHE_MAX_TTL = getattr(settings, 'CACHE_MAX_TTL', DEFAULT_TIMEOUT)
+CACHE_TTL = getattr(settings, 'CACHE_TTL', settings.CACHE_TTL)
+CACHE_MAX_TTL = getattr(settings, 'CACHE_MAX_TTL', settings.CACHE_MAX_TTL)
 
 
 import yaml
@@ -139,3 +143,98 @@ def help_support(request):
         in_data = []
     context.update({"data": data_})
     return render(request, "crmManager/"+template_version+"/help.html", context= context)
+
+
+def get_notification(request):
+    if not request.user.is_authenticated:
+        messages.error(request, "Please login.")
+        return HttpResponseRedirect(reverse('login_view'))
+    try:
+        if 'crm_branch' not in cache:
+            print("Notification cache xaina")
+            redis.set_crm_branch(request)
+        current_branch = cache.get('crm_branch')
+        data = []
+        count = 0
+        employee = employee_models.Employee.objects.get(user=request.user)
+        notifications = notification_models.Notifications.objects.filter(employee=employee).order_by('-id')
+        common_notifications = notification_models.Notifications.objects.filter(employee=None, for_branch=current_branch).order_by('-id')
+        for i in notifications:
+            if  not i.is_read:
+                count = count+1
+                if i.leave:
+                    if i.tag == 'approve/reject':
+                        data.append({
+                            'id':i.id,
+                            'text':i.text,
+                            'leave_id':i.leave.id,
+                            'leave_reason':i.leave.reason,
+                            'from_date':i.leave.from_date,
+                            'to_date':i.leave.to_date,
+                            'date':i.date,
+                            'time':str(i.time).split('.')[0],
+                            'is_read':i.is_read,
+                            'leave':True,
+                            'tag':i.tag,
+                            'reject_reason':i.leave.reject_reason
+                        })
+                    else:
+                        data.append({
+                            'id':i.id,
+                            'text':i.text,
+                            'leave_id':i.leave.id,
+                            'leave_reason':i.leave.reason,
+                            'from_date':i.leave.from_date,
+                            'to_date':i.leave.to_date,
+                            'date':i.date,
+                            'time':str(i.time).split('.')[0],
+                            'is_read':i.is_read,
+                            'leave':True,
+                            'tag':i.tag,
+                        })
+                if i.compensation:
+                    data.append({ 
+                        'id':i.id,
+                        'text':i.text,
+                        'compensation_id':i.compensation.id,
+                        'leave_reason':i.compensation.reason,
+                        'days':i.compensation.days,
+                        'date':i.date,
+                        'time':str(i.time).split('.')[0],
+                        'is_read':i.is_read,
+                        'leave':True,
+                        'tag':i.tag,
+                    })  
+        for i in common_notifications:
+            if  not i.is_read:
+                count = count+1
+                if i.holiday:
+                    data.append({
+                        'id':i.id,
+                        'text':'Holiday Notification of ' + i.holiday.title,
+                        'holiday_title':i.holiday.title,
+                        'holiday_id':i.holiday.id,
+                        'from_date':i.holiday.from_date,
+                        'to_date':i.holiday.to_date,
+                        'date':i.date,
+                        'time':str(i.time).split('.')[0],
+                        'is_read':i.is_read,
+                        'holiday':True,
+                        'tag':i.tag,
+                    })
+                # if i.notice:
+                #     data.append({
+                #         'id':i.id,
+                #         'text': i.notice.topic,
+                #         'notice_message':i.notice.message,
+                #         'date':i.date,
+                #         'time':str(i.time).split('.')[0],
+                #         'is_read':i.is_read,
+                #         'notice':True,
+                #         'tag':i.tag,
+                #     })                
+        data = sorted(data, key = lambda i: (i['date'],i['time']),reverse=True)
+        return JsonResponse({"status": True, "data":data}, status=200)
+    except (Exception, employee_models.Employee.DoesNotExist) as e:
+        print("Notification API Exception", e)
+        return JsonResponse({"status": False, "error": "Something went wrong. Please try again later."}, status=500)

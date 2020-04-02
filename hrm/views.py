@@ -19,7 +19,7 @@ from support import models as support_models
 from helper.common import common as common
 
 
-CACHE_TTL = getattr(settings, 'CACHE_TTL', DEFAULT_TIMEOUT)
+CACHE_TTL = getattr(settings, 'CACHE_TTL', settings.CACHE_TTL)
 
 import yaml
 credential = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)

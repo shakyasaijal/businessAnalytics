@@ -11,6 +11,19 @@ from employee import models as employee_models
 from leave_manager.common.send_email_notification import send_email_notification
 from services import models as service_models
 from collections import Counter
+import pusher
+import yaml
+from leave_manager.common import check_leave_admin
+
+
+credentials = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
+pusher_client = pusher.Pusher(
+  app_id= credentials['pusher_app_id'],
+  key= credentials['pusher_key'],
+  secret= credentials['pusher_secret'],
+  cluster= credentials['pusher_cluster'],
+  ssl= credentials['pusher_ssl']
+)
 
 
 def get_lms_user(user):
@@ -22,31 +35,39 @@ def get_lms_user(user):
         return '', False
 
 
+def leave_days(leave_details, request):
+    days = ((leave_details['to_date'] - leave_details['from_date']).days+1) * leave_details['leave_multiplier']
+
+    weekdays = Counter()
+    from_date = datetime.strptime(request.POST['from_date'], "%Y-%m-%d")
+    to_date = datetime.strptime(request.POST['to_date'], "%Y-%m-%d")
+
+    for i in range((to_date - from_date).days+1):
+        weekdays[(from_date + timedelta(i)).strftime('%a')] += 1
+
+    sat = False
+    deduct = weekdays['Sat']
+
+    if leave_details['half_day']:
+        deduct = deduct/2
+
+    if weekdays['Sat'] > 0:
+        days = days-deduct
+        sat = True
+
+    return {"days": days, 'sat': sat, 'weekdays':weekdays['Sat'], 'deduct': deduct}
+
+
 def apply_leave(leave_details, request):
     try:
-        days = ((leave_details['to_date'] - leave_details['from_date']
-                 ).days+1) * leave_details['leave_multiplier']
-
-        weekdays = Counter()
-        from_date = datetime.strptime(request.POST['from_date'], "%Y-%m-%d")
-        to_date = datetime.strptime(request.POST['to_date'], "%Y-%m-%d")
-
-        for i in range((to_date - from_date).days+1):
-            weekdays[(from_date + timedelta(i)).strftime('%a')] += 1
-
-        sat = False
-        deduct = weekdays['Sat']
-
-        if leave_details['half_day']:
-            deduct = deduct/2
-
-        if weekdays['Sat'] > 0:
-            days = days-deduct
-            sat = True
-
+        leave_days_data = leave_days(leave_details, request)
+        sat = leave_days_data['sat']
+        weekdays = leave_days_data['weekdays']
+        deduct = leave_days_data['deduct']
+        days = leave_days_data['days']
         reason = ''
         if sat:
-            reason += "There are {} days of Saturday.".format(weekdays['Sat'])
+            reason += "There are {} days of Saturday.".format(weekdays)
 
         leave = leave_models.Leave.objects.create(
             user=leave_details['current_lms_user'], type=leave_details['leave_type'], from_date=leave_details['from_date'],
@@ -76,17 +97,20 @@ def apply_leave(leave_details, request):
                         request, "Leave applied successfully. Your {} day of Saturday will not be deducted from your leave.".format(deduct))
                 else:
                     messages.success(request, "Leave applied successfully.")
-                return True
+
+                pusher_client.trigger('leave-channel', 'leave-approve', {'applied_by': 'hello world', 'applied_to_id': leave_details['issuer'].user.id, 'message': 'New leave applied by {}'.format(leave_details['current_lms_user'].employee.user.get_full_name())})
+
+                return leave, True
             else:
                 leave.delete()
-                return False
+                return '', False
         else:
-            return False
+            return '', False
     except (Exception) as e:
-        print("leave_manager > common > leave_manager > line 55 ", e)
+        print("leave_manager > common > leave_manager > line 86 ", e)
         if leave:
             leave.delete()
-            return False
+            return '', False
 
 
 def half_leave_applied(request):
@@ -102,6 +126,7 @@ def half_leave_applied(request):
 def get_leave_requests_by_id(user, id):
     pending_leave_requests = []
     my_leave_approvees = LmsUser.objects.filter(leave_issuer=user)
+
     for leave_request in Leave.objects.filter(user__in=my_leave_approvees, leave_pending=True, id=id):
         leave_multiplier = 1
         if leave_request.half_day:
@@ -122,29 +147,39 @@ def get_leave_requests_by_id(user, id):
     return pending_leave_requests
 
 
-def get_leave_requests(user):
+def get_leave_requests(request):
     pending_leave_requests = []
-    my_leave_approvees = LmsUser.objects.filter(leave_issuer=user)
-    for leave_request in Leave.objects.order_by("-id").filter(user__in=my_leave_approvees, leave_pending=True):
-        if leave_request.from_date >= date.today():
-            leave_multiplier = 1
-            if leave_request.half_day:
-                leave_multiplier = 0.5
-            pending_leave_requests.append(
-                {
-                    'id': leave_request.id,
-                    'full_name': leave_request.user.user.get_full_name(),
-                    'department': leave_request.user.department.department,
-                    'from_date': str(leave_request.from_date),
-                    'to_date': str(leave_request.to_date),
-                    'total_days': ((leave_request.to_date - leave_request.from_date).days + 1) * leave_multiplier,
-                    'leave_type': leave_request.type.type,
-                    'leave_reason': leave_request.reason,
-                    'half_day': leave_request.half_day,
-                    'notification': leave_request.notification
-                }
-            )
-    return pending_leave_requests
+    try:
+        emp = employee_models.Employee.objects.get(user=request.user)
+        my_leave_approvees = lms_user_models.LmsUser.objects.filter(leave_issuer=emp)
+
+        for leave_request in leave_models.Leave.objects.order_by("-id").filter(user__in=my_leave_approvees, leave_pending=True):
+            if leave_request.from_date >= date.today():
+                leave_multiplier = 1
+                if leave_request.half_day:
+                    leave_multiplier = 0.5
+                pending_leave_requests.append(
+                    {
+                        'id': leave_request.id,
+                        'full_name': leave_request.user.employee.user.get_full_name(),
+                        'picture': leave_request.user.employee.picture.url,
+                        'department': leave_request.user.employee.department.all(),
+                        'from_date': leave_request.from_date,
+                        'to_date': leave_request.to_date,
+                        'total_days': leave_request.days,
+                        'leave_type': leave_request.type.type,
+                        'leave_reason': leave_request.reason,
+                        'half_day': leave_request.half_day,
+                        'notification': leave_request.notification,
+                        "leave_on_holiday": leave_request.leave_on_holiday,
+                        "leave_on_holiday_reason":leave_request.leave_on_holiday_reason,
+                        "multiplied": leave_request.days*2
+                    }
+                )
+        return pending_leave_requests
+    except (Exception, employee_models.Employee.DoesNotExist) as e:
+        print(e)
+        return pending_leave_requests
 
 
 def get_leave_today():

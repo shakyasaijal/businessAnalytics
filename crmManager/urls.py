@@ -18,5 +18,8 @@ urlpatterns = [
     path('', views.crm_index, name="crm_index"),
     path('<slug:slug>/', views.crm_branch, name="crm_branch"),
     path('weather/', views.weather, name="weather"),
-    path('help-and-support/', views.help_support, name="help_support")
+    path('help-and-support/', views.help_support, name="help_support"),
+
+
+    path('get-notification', views.get_notification, name="get_notification")
 ]

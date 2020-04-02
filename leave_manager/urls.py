@@ -13,5 +13,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path('', views.lms_index, name="lms_index"),
     path('apply-leave', views.apply_leave, name="lms_apply_leave"),
+    path('leave-requests', views.get_leave_requests, name="get_leave_requests")
 ]

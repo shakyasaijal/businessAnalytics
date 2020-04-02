@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'crmManager',
     'support',
     'hrm',
+    'notifications',
 ]
 
 CKEDITOR_UPLOAD_PATH = "uploads/"
@@ -101,8 +102,8 @@ CACHES = {
     }
 }
 
-CACHE_TTL = 60 * 0.5      # 15 minute 
-CACHE_MAX_TTL = 60 * 60 # 1 hour
+CACHE_TTL = 60 * 0.5      # 15 minute
+CACHE_MAX_TTL = 60 * 60  # 1 hour
 
 AUTH_PASSWORD_VALIDATORS = [
     {

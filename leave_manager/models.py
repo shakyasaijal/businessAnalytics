@@ -31,10 +31,10 @@ class Leave(models.Model):
     notification = models.BooleanField(default=True)# true = should be notify #false = should not notify
     objects = LeaveQuerySet.as_manager() 
     reject_reason = models.TextField(null=True, blank=True)
-    days = models.IntegerField(null=False, blank=False, default=0)
+    days = models.FloatField(null=False, blank=False, default=0)
 
     # for saturday or company holidays: number and reason
-    leave_on_holiday = models.IntegerField(null=False, blank=False, default=0)
+    leave_on_holiday = models.FloatField(null=False, blank=False, default=0)
     leave_on_holiday_reason = models.CharField(max_length=255, null=True, blank=True)
 
 

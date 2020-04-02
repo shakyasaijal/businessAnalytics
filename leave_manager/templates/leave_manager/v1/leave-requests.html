@@ -1,0 +1,133 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% if data_failed %}
+<style>
+    .card .table tbody td:last-child, .card .table thead th:last-child {
+        padding-right: 15px;
+        display: block;
+    }
+</style>
+{% endif %}
+{% endblock css %}
+
+{% block content %}
+    {% if messages %}
+        {% include "sysManager/v1/partials/notification.html" %}
+    {% endif %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'crm_index' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lms_index' %}">Leave Management System</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Leave Requests</li>
+        </ol>
+    </nav>
+
+{% for leave in leave_requests %}
+<!-- Modal: Leave Details -->
+<div class="modal fade" id="leaveDetails{{forloop.counter}}" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">  
+        <form class="modal-content" method="POST" action="">
+            <div class="modal-header text-center">
+                <h6 class="modal-title w-100 font-weight-bold">{% if leave.half_day %} Half Leave for {{leave.multiplied}} {% if leave.multiplied < 2 %} day {% else %} days {% endif %} {% else %} {{leave.total_days}} {% if leave.total_days < 2 %} day {% else %} days {% endif %}  of Full Leave {% endif %}</h6>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 5px;margin-top:5px;">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="modal-img-c">
+                            <img src="{{leave.picture}}" alt="{{leave.full_name}}">
+                            <label>{{leave.full_name}}</label>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <label><b>Leave Reason</b></label>
+                        <p class="small-font">
+                            {{leave.leave_reason}}
+                        </p>
+
+                        <p><b>Leave Type:</b> {{leave.leave_type}}</p>
+                    </div>
+                </div>
+                <br/>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="jumbotron flex text-center" style="padding:6px; margin:0">
+                            <div class="w30" style="border-right:1px solid burlywood">
+                                <h2> {% if leave.total_days < 1 %}Half{% else %}{{leave.total_days}}{% endif %}</h2>
+                                <span><b>DAYS</b></span>
+                            </div>
+                            <div class="w70">
+                                <p class="center-all">{{leave.from_date}} - {{leave.to_date}}
+                                    {% if leave.leave_on_holiday %}
+                                    <br/>
+                                    <br/>
+                                    {{leave.leave_on_holiday_reason}} So, {{leave.leave_on_holiday}}{% if leave.leave_on_holiday < 2 %} day  {% else %}days{% endif %} {% if leave.half_day %} (since half leave) {% endif %} is not declared.
+                                    {% endif %}
+                                </p>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr/>
+            </div>
+            <div class="row mb-2 ml-4 mr-4">
+                {% csrf_token %}
+                <label><b>Leave Response</b> (You can approve without any messages.)</label>
+                <textarea class="form-control" placeholder="Please provide leave reason if it is to be REJECTED." name="reject_reason"></textarea>
+            </div>
+            <div class="row mb-2 ml-4">
+                <div class="col-sm pull-left">
+                    <button class="btn btn-sm btn-success mr-2" name="leave_response" value="1">Approve</button> 
+                </div>
+                <div class="col-sm pull-right">
+                    <button class="btn btn-sm btn-danger"  type="submit" style="position:relative; left: 50%"  name="leave_response" value="2">Reject</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+    <h5 class="mt-4 font-weight-bold">All Leave Requests</h5>
+    {% if leave_requests %}
+        <div class="row">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table class="overflow-scroll d-sm-table table">
+                        <thead>
+                            <tr>
+                                <th scope="col">S.No</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Department</th>
+                                <th scope="col">Total Days</th>
+                                <th scope="col">Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leave_requests %}
+                                <tr {% if leave.notification %}style="border:1px solid red" {% endif %}>
+                                    <td data-toggle="modal" data-target="#leaveDetails{{forloop.counter}}">{{forloop.counter}}</td>
+                                    <td data-toggle="modal" data-target="#leaveDetails{{forloop.counter}}">{{leave.full_name}}</td>
+                                    <td data-toggle="modal" data-target="#leaveDetails{{forloop.counter}}">{% for d in leave.department %}{{d}}{% if not forloop.last %}, {% endif %} {%endfor%}</td>
+                                    <td data-toggle="modal" data-target="#leaveDetails{{forloop.counter}}">{{leave.total_days}}</td>
+                                    <td data-toggle="modal" data-target="#leaveDetails{{forloop.counter}}">
+                                        <button class="btn btn-sm custom-blue-outline" name="details">Details</button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% else %}
+    <p>No Leave Request...</p>
+    {% endif %}
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

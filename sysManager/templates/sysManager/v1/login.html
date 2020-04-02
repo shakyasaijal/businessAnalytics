@@ -1,5 +1,5 @@
 {% if messages %}
-    {% include "sysManager/partials/notification.html" %}
+    {% include "sysManager/v1/partials/notification.html" %}
 {% endif %}
 <form method="POST" action="{% url 'login_controller' %}">
     {% csrf_token %}

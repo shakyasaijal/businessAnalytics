@@ -7,7 +7,7 @@ from django.contrib import messages
 from leave_manager import models as leave_models
 from lms_user import models as lms_user_models
 from employee import models as employee_models
-
+from leave_manager.common import leave_manager
 
 
 def register_validation(request):
@@ -101,11 +101,9 @@ def leave_validation(request):
 
 
 def has_leave_on_particular_date(lms_user, date, date1):
-    leaves = leave_models.Leave.objects.filter(Q(from_date__month=date.month, from_date__year=date.year) | Q(to_date__month=date.month, to_date__year=date.year)).order_by('id').distinct()
-
+    leaves = leave_models.Leave.objects.filter(Q(user=lms_user) & (Q(from_date__month=date.month, from_date__year=date.year) | Q(to_date__month=date.month, to_date__year=date.year))).order_by('id')
     if leaves:
         data_ = None
-        from_data = datetime
         days_ = []
         days_2 = []
         for data in leaves:
@@ -118,11 +116,13 @@ def has_leave_on_particular_date(lms_user, date, date1):
                 else:
                     status = False
                 days_2.append(current)
+
                 days_.append({
                     "found":current,
                     "status": status
                 })
             if date in days_2:
+                
                 leave_status = "Pending"
                 if data.leave_approved:
                     leave_status = "Approved"
@@ -138,7 +138,6 @@ def has_leave_on_particular_date(lms_user, date, date1):
                     }
                 
                 return send, True
-            break
             days_ = []
     return leaves, False
 
@@ -171,6 +170,50 @@ def able_to_apply_leave(request):
 
     
     return '',True
+
+
+def has_leave_left(request):
+    try:
+        emp = employee_models.Employee.objects.get(user=request.user)
+        lms = lms_user_models.LmsUser.objects.get(employee=emp)
+        leave_type = leave_models.LeaveType.objects.get(id=request.POST["leave_type"])
+        leaves = leave_models.Leave.objects.filter(user=lms, to_date__year = datetime.now().year, type=leave_type)
+        count = 0
+        diff = 0
+
+        for data in leaves:
+            if data.leave_pending or data.leave_approved:
+                count += data.days
+            
+
+        leave_details = {
+                "from_date": datetime.strptime(request.POST["from_date"], "%Y-%m-%d"),
+                "to_date": datetime.strptime(request.POST["to_date"], "%Y-%m-%d"),
+                "half_day": False,
+                "leave_multiplier": 1,
+            }
+
+        try:
+            diff = leave_type.leave_per_year - count
+        except (Exception, ValueError) as e:
+            pass
+
+        till_now = leave_manager.leave_days(leave_details, request)
+
+        days_applied = till_now['days']
+
+        total_after_approved = count + days_applied
+
+        if total_after_approved > leave_type.leave_per_year:
+            return {"diff":diff, "type": leave_type, "status": "1"}, False
+        
+
+        if count >= leave_type.leave_per_year:
+            return {"diff": diff, "type":leave_type, "status": "0"}, False
+        else:
+            return {"diff": diff, "type":leave_type, "status": "0"}, True
+    except (Exception, employee_models.Employee.DoesNotExist, lms_user_models.LmsUser.DoesNotExist, leave_models.Leave.DoesNotExist, leave_models.LeaveType.DoesNotExist) as e:
+        return {"diff": diff, "type":leave_type, "status": "2"}, True
 
 
 def compensation_validtion(request,context):
