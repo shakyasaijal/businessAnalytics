@@ -1,0 +1,10 @@
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+<form method="POST" action="{% url 'login_controller' %}">
+    {% csrf_token %}
+    <input type="text" name="username"  autocomplete="off" placeholder="Username"/>
+    <input type="password" name="password" required autocomplete="off" placeholder="Passowrd"/>
+    <a>Forget Password?</a>
+    <button type="submit">Log In</button>
+</form>

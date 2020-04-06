@@ -1,0 +1,48 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% if data_failed %}
+{% endif %}
+{% endblock css %}
+
+{% block content %}
+    {% if messages %}
+        {% include "sysManager/v1/partials/notification.html" %}
+    {% endif %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'crm_index' %}">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Leave Management System</li>
+        </ol>
+    </nav>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <a href="{% url 'lms_apply_leave' %}">
+                    <div class="card-img-container">
+                        <img class="card-img-top" src="https://picsum.photos/100/500" alt="Card image cap">
+                    </div>
+                    <div class="card-body">
+                    <p class="card-text text-center">Apply Leave</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <a href="{% url 'get_leave_requests' %}">
+                    <div class="card-img-container">
+                        <img class="card-img-top" src="https://picsum.photos/100/500" alt="Card image cap">
+                    </div>
+                    <div class="card-body">
+                    <p class="card-text text-center">Leave Request</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+   </div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

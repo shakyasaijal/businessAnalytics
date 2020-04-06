@@ -1,0 +1,318 @@
+.disabled{
+    pointer-events: none !important;
+    color: #ccc !important;
+}
+
+.nav-img{
+    height: 40px;
+    width: 40px;
+    overflow: hidden;
+}
+
+.nav-image{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.card-img-top{
+    height: 200px;
+    overflow: hidden;
+}
+
+.card-img-top img{
+    width: 100%;
+    height: 100%;
+    object-fit: scale-down;
+}
+
+.table-m-height{
+    max-height: 300px;
+    overflow-y: scroll;
+}
+
+.table-min-height{
+    max-height: 190px;
+    overflow-y: scroll;
+}
+
+.f-focus{
+    font-size: 20px !important;
+    margin: unset;
+}
+
+.modal-img-c
+{
+    height: 150px;
+    width: 150px;
+    overflow: hidden;
+}
+
+.modal-img-c img{
+    height: 100%;
+    width: 100%;
+    object-fit: scale-down;
+}
+
+.flex{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.w30{
+    width: 30%;
+}
+
+.w70{
+    width: 70%;
+}
+
+.center-all{
+    top: 50%;
+    position: relative;
+    transform: translate(0%, -50%);
+}
+
+.small-font{
+    font-size: 12px;
+}
+
+.modal.show .modal-dialog {
+    -webkit-transform: translate(0, 0%);
+    -o-transform: translate(0, 0%);
+    transform: translate(0, 0%);
+}
+
+.symbol-container{
+    height: 60px;
+    width: 60px;
+    overflow: hidden;
+}
+
+.symbol-container img{
+    height: 100%;
+    width: 100%;
+    object-fit: scale-down;
+}
+.flex-notification{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.grid-notification{
+    height: 100%;
+    max-height: 100%;
+    display: grid;
+    width: 100%;
+    padding: 10px 30px;
+    grid-template-columns: 20% 80%;
+}
+
+.grid-notification .notification{
+    word-break: break-word;
+    max-height: 100px;
+    overflow: hidden;
+}
+
+.grid-notification:not(:last-child){
+    border-bottom: 1px solid #fff;
+}
+
+.unread{
+    background:#e1e3e4;
+}
+
+.mr-16{
+    margin-right: 16px;
+}
+
+.checkbox{
+    font-size: 20px;
+}
+
+.back-white{
+    background: #fff;
+}
+
+.saijal-card .card-header{
+    background: #ececec !important;
+}
+
+.mt0{
+    margin-top: 0;
+}
+
+/*
+Leaves Design
+*/
+ /* Style the tab */
+ .tab {
+    float: left;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    width: 30%;
+    height: 100%;
+    }
+
+    /* Style the buttons inside the tab */
+    .tab button {
+    background-color: inherit;
+    color: black;
+    padding: 22px 16px;
+    width: 100%;
+    border: none;
+    outline: none;
+    text-align: left;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 17px;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+    background-color: #ddd;
+    }
+
+    /* Create an active/current "tab button" class */
+    .tab button.active {
+    background-color: #ccc;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+    float: left;
+    padding: 0px 12px;
+    border: 1px solid #ccc;
+    width: 70%;
+    border-left: none;
+    }
+    .leaves-flex{
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+        flex-wrap: wrap;
+    }
+    .leave-name{
+        padding: 0px 20px;
+    }
+    .leave-name p{
+        font-size: 18px;
+    }
+
+.leave-for{
+    float: right;
+}
+.leave-of {
+    padding: 0px 20px;
+    width: 100%;
+}
+
+.leave-of .leave-date{
+    font-size: 13px;
+}
+.leave-img-container{
+    height: 60px;
+    width: 60px;
+    overflow: hidden;
+}
+
+.leave-img-container img{
+    width: 100%;
+    border-radius: 50%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.leave-open{
+    padding: 0px 10px;
+    width: 100%;
+    height: 100%;
+    background: #06123ecf;
+    display: none;
+}
+
+.active-leave{
+    background: #06123ecf;
+    display: block;
+}
+
+.leave-desc label{
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.leave-desc{
+    background:#e9ecef;
+    margin: 0px 10px;
+    padding: 1rem;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.leave__{
+    background:#e9ecef;
+    margin: 0px 10px;
+    padding: 1rem;
+    width: 50%;
+    /* margin: 0 auto; */
+    margin-top: 10px;
+    font-size: 13px;
+    display: flex;
+    text-align: center;
+}
+
+.leave__ .from{
+    margin: 0 auto;
+}
+.leave-days{
+    display: flex;
+}
+.leave-title{
+    margin: 0px 10px;
+    color: white;
+    padding-top: 10px;
+}
+
+.short-leave{
+    background:#e9ecef;
+    margin: 0px 10px;
+    padding: 1rem;
+    width: 50%;
+    /* margin: 0 auto; */
+    margin-top: 10px;
+    display: flex;
+    text-align: center;
+}
+
+.approve-leave{
+    margin: 0px 10px;
+    padding: 1rem;
+    /* margin: 0 auto; */
+    margin-top: 10px;
+    text-align: center;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.approve-leave button{
+    background:#87CB16;
+    color: white;
+    cursor: pointer;
+}
+
+.reject-leave{
+    margin: 0px 10px;
+    padding: 1rem;
+    /* margin: 0 auto; */
+    margin-top: 10px;
+}
+
+.reject-leave button{
+    background:#EE2D20;
+    color: white;
+}

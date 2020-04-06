@@ -1,0 +1,124 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg " color-on-scroll="500">
+    
+    <div class="container-fluid">
+        <a href="#!" class="navbar-brand" id="collapse"><i class="nc-icon nc-align-center"></i></a>
+        <a class="navbar-brand p" href="{% url 'crm_index' %}"> {{current_branch}} </a>
+        <button href="" class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" aria-controls="navigation-index" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-bar burger-lines"></span>
+            <span class="navbar-toggler-bar burger-lines"></span>
+            <span class="navbar-toggler-bar burger-lines"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navigation">
+            <ul class="nav navbar-nav mr-auto">
+                <li class="dropdown nav-item">
+                    <a href="{% url 'notifications' %}" id="g_notification" class="nav-link">
+                        <i class="fa fa-bell"></i>
+                        <span class="notification" id="notification"> {{cn_count}} </span>
+                        <span class="d-lg-none">Notification</span>
+                    </a>
+                    <script>
+                        let cn = '{{cn_count}}';
+                        let show_notify_icon = "{{show_notify_icon}}";
+                        let notify = document.getElementById("notification")
+                        if (parseInt(cn) > 0 && show_notify_icon == "True")
+                        {
+                            notify.style.display = "block";
+                        }
+                        else{
+                            notify.style.display = "none";
+                        }
+                    </script>
+
+                    <script>
+                        // Enable pusher logging - don't include this in production
+                        
+                        Pusher.logToConsole = false;
+
+                        var pusher = new Pusher('d3c5e0defe6e6e9c77f8', {
+                        cluster: 'us2',
+                        forceTLS: true
+                        });
+
+                        var channel = pusher.subscribe('leave-channel');
+
+                        channel.bind('leave-approve',  function(data) {
+                            if("{{request.user.id}}" == JSON.stringify(data.applied_to_id))
+                            {
+                                if (window.location.pathname != "/notifications/")
+                                {
+                                    let notify = document.getElementById("notification").style.display = "block";
+                                    let currentNot = document.getElementById("notification").innerHTML
+                                    document.getElementById("notification").innerHTML = parseInt(currentNot) + 1;
+                                }
+
+                            }
+                        });
+
+                        channel.bind('leave-approved', function(data){
+                            if("{{request.user.id}}" == JSON.stringify(data.applied_by_id))
+                            {
+                                if (window.location.pathname != "/notifications/")
+                                {
+                                    let notify = document.getElementById("notification").style.display = "block";
+                                    document.getElementById("notification").innerHTML = data.count;
+                                    console.log(data)
+                                }
+                            }
+                        })
+                    </script>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                
+                {% if total_branch %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="no-icon">Choose Branch</span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        {% for data in total_branch %}
+                            <a href="{% url 'crm_branch' data.slug %}" {% if current_branch.id == data.id %} class="dropdown-item disabled" {% else %} class="dropdown-item" {% endif %}>{{data}}</a>
+                            {% if not forloop.last %}
+                                    <div class="divider"></div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="http://example.com" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <span class="no-icon nav-img">
+                            {% if context_employee.picture.url %}
+                                <img src="{{ context_employee.picture.url }}" class="nav-image"/>
+                            {% else %}
+                                <img src="{% static 'crmManager/common/no-photo.png' %}" class="nav-image"/>
+                            {% endif %}
+                        </span>
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a href="{% url 'user-profile' %}" class="dropdown-item">Profile</a>
+                        <div class="divider"></div>
+                        <a href="/" class="dropdown-item">Logout</a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#pablo">
+                        <span class="no-icon">Account</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <script src="{% static 'crmManager/v1/assets/js/core/jquery.3.2.1.min.js' %}" type="text/javascript"></script>
+    <script>
+        $(document).ready(function(){
+            $("#collapse").click(function(e){
+                e.preventDefault();
+                $(".wrapper").toggleClass("nav-active");
+            });
+        });
+    </script>
+</nav>
+<!-- End Navbar -->
+

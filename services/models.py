@@ -25,7 +25,8 @@ def services_image(instance, filename):
 class AllServices(models.Model):
     service_name = models.CharField(max_length=255, null=False, blank=False, choices=service_helper.types_of_services, default=1)
     picture = models.ImageField(upload_to=services_image, null=False, blank=False)
-    status = models.BooleanField(choices = service_helper.status, null=False, blank=False, default = False)
+    status = models.CharField(max_length=255, choices = service_helper.status, null=False, blank=False, default = False)
+    expiry_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.service_name

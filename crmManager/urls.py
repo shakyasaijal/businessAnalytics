@@ -9,9 +9,16 @@ Development:
 License: Credited
 Contact: https://saijalshakya.com.np
 '''
+
+# /crm
 from django.urls import path, include
 from . import views
 
 urlpatterns = [
     path('', views.crm_index, name="crm_index"),
+    path('<slug:slug>/', views.crm_branch, name="crm_branch"),
+    path('weather/', views.weather, name="weather"),
+    path('help-and-support/', views.help_support, name="help_support"),
+    path('profile', views.profile, name="user-profile"),
+    path('get-notification', views.get_notification, name="get_notification")
 ]

@@ -1,0 +1,71 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+{% load addcss %}
+{% block css %}
+{% endblock css %}
+
+{% block content %}
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card card-primary">
+                <div class="card-header">
+                    <h3 class="card-title">Add New Holiday</h3>
+                </div>
+                <form role="form" method="POST">
+                    {% csrf_token %}  
+                    <div class="card-body form-error">
+                        {% for field in form %}
+                            {% if forloop.first or forloop.counter|divisibleby:3 %}
+                                <div class="row">
+                            {% endif %}
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>{{field.label_tag}}</label>
+                                    {% if forloop.last %}
+                                    <br/>
+                                        {{field}}
+                                    {% else %}
+                                        {{field|addcss:"form-control"}}
+                                    {% endif %}
+                                    {{field.errors}}
+                                </div>
+                            </div>
+                            {% if forloop.last or forloop.counter|divisibleby:2 and not forloop.first %}
+                                {% if forloop.last %}
+                                    <div class="col-md-6">
+                                        <table class="table">
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <input name="notify_all" type="checkbox" value="1"> 
+                                                    </td>
+                                                    <td>
+                                                        Send Notification To All Employee<br/>(from selected Branches only.)
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        
+                                    </div>
+                                {% endif %}
+                                </div>
+                            {% endif %}
+                            {% if forloop.last %}
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

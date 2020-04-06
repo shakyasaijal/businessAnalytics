@@ -7,6 +7,7 @@ types_of_services = (
 )
 
 status = (
-    (True, "Activated"),
-    (False, "Deactivated"),
+    ("Activated", "Activated"),
+    ("Deactivated", "Deactivated"),
+    ("Trial", "Trial Provided"),
 )

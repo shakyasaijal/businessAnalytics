@@ -5,6 +5,10 @@ from django.core.files import File
 from datetime import datetime
 import os
 from django.dispatch import receiver
+from inventory import models as inventory_model
+from support import models as support_models
+from helper.common import common as helper
+from multiselectfield import MultiSelectField
 
 
 def employee_image(instance, filename):
@@ -23,7 +27,7 @@ def employee_image(instance, filename):
 
 class Department(models.Model):
     department_name = models.CharField(max_length=255, null=False, blank=False, unique=True, help_text="LMS, HRM, CRM, Inventory Management")
-    department_head = models.ForeignKey(User, on_delete=models.CASCADE, related_name='department_head', null=True, blank=True)
+    department_head = models.ForeignKey(User, on_delete=models.CASCADE, related_name='department_head', null=False, blank=False)
 
     def __str__(self):
         return self.department_name
@@ -34,11 +38,17 @@ class Department(models.Model):
 
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee')
+    department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
+    date_of_birth = models.DateField(auto_now_add=False)
+    joined_date = models.DateField(auto_now_add=False, null=True, blank=True)
+    branch = models.ManyToManyField(support_models.Branches, blank=False)
     contact = models.CharField(max_length=255, null=True, blank=True)
     address = models.CharField(max_length=255, null=True, blank=True)
     pan_document = models.FileField(verbose_name="PAN Document",upload_to="employee/static/employee/pan/", null=True, blank=True)
-    picture = models.ImageField(upload_to=employee_image, null=True, blank=True)
-    department = models.ManyToManyField(Department, verbose_name="Employee Departments", blank=False)
+    picture = models.ImageField(upload_to=employee_image, null=False, blank=False)
+    user_type = MultiSelectField(choices=helper.employee_type)
+    staff_head = models.ForeignKey('self', on_delete=models.PROTECT, related_name="employee_staff_head", null=True, blank=True, help_text="If Ownership, then not required.")
+    fcm_token = models.CharField(max_length=255, null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -64,7 +74,24 @@ class Employee(models.Model):
 
     image_tag.short_description = 'Image'
     file_tag.short_description = 'PAN DOC'
-        
+
+    def _branch_(self):
+        return ", ".join([str(p) for p in self.branch.all()])
+
+
+class Salary(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="employee_salary")
+    salary = models.IntegerField(null=False, blank=False)
+    month = models.DateField(null=False, blank=False)
+
+    def __str__(self):
+        return self.employee.user.get_full_name()
+
+    class Meta:
+        verbose_name = verbose_name_plural = "Employees Salary"
+
+    def employee_name(self):
+        return self.employee.user.get_full_name()
 
 
 @receiver(models.signals.post_delete, sender=Employee)
