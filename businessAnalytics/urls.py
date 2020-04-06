@@ -21,6 +21,7 @@ urlpatterns = [
     path('super-admin/', super_admin_site.urls),
     path('hrm/', include('hrm.urls')),
     path('lms/', include('leave_manager.urls')),
+    path('management/', include('management.urls')),
     path('', include('sysManager.urls'))
 ]
 

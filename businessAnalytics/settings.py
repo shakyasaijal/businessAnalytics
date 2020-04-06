@@ -20,6 +20,7 @@ DEBUG = credentials['debug']
 ALLOWED_HOSTS = credentials['allowed_host']
 
 INSTALLED_APPS = [
+    'crmManager',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -35,10 +36,10 @@ INSTALLED_APPS = [
     'employee',
     'lms_user',
     'sysManager',
-    'crmManager',
     'support',
     'hrm',
     'notifications',
+    'management'
 ]
 
 CKEDITOR_UPLOAD_PATH = "uploads/"

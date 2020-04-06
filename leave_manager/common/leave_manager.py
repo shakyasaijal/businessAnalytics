@@ -14,6 +14,7 @@ from collections import Counter
 import pusher
 import yaml
 from leave_manager.common import check_leave_admin
+from notifications import models as notification_models
 
 
 credentials = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
@@ -67,7 +68,10 @@ def apply_leave(leave_details, request):
         days = leave_days_data['days']
         reason = ''
         if sat:
-            reason += "There are {} days of Saturday.".format(weekdays)
+            day_or_days = "day"
+            if weekdays > 1:
+                day_or_days = "days"
+            reason += "There are {} {} of Saturday.".format(weekdays, day_or_days)
 
         leave = leave_models.Leave.objects.create(
             user=leave_details['current_lms_user'], type=leave_details['leave_type'], from_date=leave_details['from_date'],
@@ -98,8 +102,8 @@ def apply_leave(leave_details, request):
                 else:
                     messages.success(request, "Leave applied successfully.")
 
-                pusher_client.trigger('leave-channel', 'leave-approve', {'applied_by': 'hello world', 'applied_to_id': leave_details['issuer'].user.id, 'message': 'New leave applied by {}'.format(leave_details['current_lms_user'].employee.user.get_full_name())})
-
+                notification_models.NotificationSettings.objects.filter(employee=leave_details['issuer']).update(show_notification_icon=True)
+                pusher_client.trigger('leave-channel', 'leave-approve', {'applied_by': 'hello world', 'applied_to_id': leave_details['issuer'].user.id,"main-data":{"msg": "{} has applied for {}".format(leave_details['current_lms_user'].employee.user.get_full_name(), leave_details['leave_type']), "date": "Recently"}, 'message': 'New leave applied by {}'.format(leave_details['current_lms_user'].employee.user.get_full_name())})
                 return leave, True
             else:
                 leave.delete()
@@ -209,17 +213,16 @@ def get_leave_today():
 
 def get_leave_detail(leave):
     try:
-        leave_multiplier = 1
+        half = "No"
         if leave.half_day:
-            leave_multiplier = 0.5
+            half = "Yes"
         leave_detail = {
             'id': leave.id,
             'lms_user': leave.user,
-            'department': leave.user.department.department,
-            'total_days': ((leave.to_date - leave.from_date).days + 1) * leave_multiplier,
+            'total_days': leave.days,
             'leave_type': leave.type.type,
             'leave_reason': leave.reason,
-            'half_day': leave.half_day,
+            'half_day': half,
         }
         return leave_detail
     except Exception as e:
@@ -321,25 +324,14 @@ def get_own_leave_detail_monthly(lms_user_id, month):
 
 def approve_leave_request(request, leave_id):
     try:
-        leave = Leave.objects.get(id=leave_id)
+        leave = leave_models.Leave.objects.get(id=leave_id)
         leave.leave_pending = False
         leave.leave_approved = True
         leave_detail = get_leave_detail(leave)
         user = leave_detail['lms_user']
-        if leave_detail['leave_type'] == 'Compensation Leave':
-            user.compensation_leave -= leave_detail['total_days']
-            if user.compensation_leave < 0:
-                return False
-        elif leave_detail['leave_type'] == 'Annual Leave':
-            user.annual_leave -= leave_detail['total_days']
-            if user.annual_leave < 0:
-                return False
-        elif leave_detail['leave_type'] == 'Sick Leave':
-            user.sick_leave -= leave_detail['total_days']
-            if user.sick_leave < 0:
-                return False
+
         update_details = {
-            'recipient_email': user.user.email,
+            'recipient_email': user.employee.user.email,
             'email_subject': 'LMS | Your Leave Request Has Been Approved',
             'email_body': '''
             Hi {}, Your Leave Request Has just been approved by {}.
@@ -347,37 +339,42 @@ def approve_leave_request(request, leave_id):
             Half Leave: {}
             Days: {}
             Leave Reason {}
-            '''.format(user.user.get_full_name(), request.user.get_full_name(), leave_detail['leave_type'],
+            '''.format(user.employee.user.get_full_name(), request.user.get_full_name(), leave_detail['leave_type'],
                        leave_detail['half_day'],
                        leave_detail['total_days'], leave_detail['leave_reason'])
         }
-        user.save()
+        leave.leave_pending = False
+        leave.leave_approved = True
+
         leave.save()
+        notification_models.NotificationSettings.objects.filter(employee = user.employee).update(show_notification_icon=True)
+
         try:
             leave_issuer_fcm = user.fcm_token
             fcm(leave_issuer_fcm, request.user.get_full_name(),
                 leave.id, "approve_leave")
         except Exception as e:
             print(e, 'asdf')
+
         if send_email_notification(update_details=update_details):
             return True
         else:
             return False
-    except (Leave.DoesNotExist, Exception) as e:
+    except (leave_models.Leave.DoesNotExist, Exception) as e:
         print(e)
         return False
 
 
 def reject_leave_request(request, leave_id):
     try:
-        leave = Leave.objects.get(id=leave_id)
+        leave = leave_models.Leave.objects.get(id=leave_id)
         leave_detail = get_leave_detail(leave)
         user = leave_detail['lms_user']
         leave.leave_pending = False
         leave.leave_approved = False
         leave.reject_reason = request.POST['reject_reason']
         update_details = {
-            'recipient_email': user.user.email,
+            'recipient_email': user.employee.user.email,
             'email_subject': 'LMS | Your Leave Request Has Been Rejected',
             'email_body': '''
                     Hi {}, Your Leave Request Has just been rejected by {}.
@@ -385,12 +382,11 @@ def reject_leave_request(request, leave_id):
                     Half Leave: {}
                     Days: {}
                     Leave Reason {}
-                    '''.format(user.user.get_full_name(), request.user.get_full_name(), leave_detail['leave_type'],
+                    '''.format(user.employee.user.get_full_name(), request.user.get_full_name(), leave_detail['leave_type'],
                                leave_detail['half_day'],
                                leave_detail['total_days'], leave_detail['leave_reason'])
         }
 
-        leave.save()
         try:
             leave_issuer_fcm = user.fcm_token
             fcm(leave_issuer_fcm, request.user.get_full_name(),
@@ -398,10 +394,14 @@ def reject_leave_request(request, leave_id):
         except Exception as e:
             print(e)
         if send_email_notification(update_details=update_details):
+            leave.save()
             return True
         else:
+            leave.leave_pending = True
+            leave.reject_reason = ''
+            leave.save()
             return False
-    except (Leave.DoesNotExist, Exception) as e:
+    except (leave_models.Leave.DoesNotExist, Exception) as e:
         print(e)
         return False
 
@@ -441,58 +441,23 @@ def get_monthly_compensationLeave_detail_of_all_user(user):
 
 
 def get_holidays(request, branch):
-    holidays = leave_models.Holiday.objects.all().order_by("from_date")
+    holidays = leave_models.Holiday.objects.all().order_by("-from_date")
     company_holidays = []
     for holiday in holidays:
         delta = holiday.from_date - date.today()
-
-        from_date_month = holiday.from_date.month
-        from_date_day = holiday.from_date.day
-
-        if from_date_month < 10:
-            from_date_month = "0" + str(holiday.from_date.month)
-        if from_date_day < 10:
-            from_date_day = "0" + str(holiday.from_date.day)
-
-        from_date_formatted = (
-            str(holiday.from_date.year)
-            + "-"
-            + str(from_date_month)
-            + "-"
-            + str(from_date_day)
-        )
-
-        to_date_month = holiday.to_date.month
-        to_date_day = holiday.to_date.day
-
-        if to_date_month < 10:
-            to_date_month = "0" + str(holiday.to_date.month)
-        if to_date_day < 10:
-            to_date_day = "0" + str(holiday.to_date.day)
-
-        to_date_formatted = (
-            str(holiday.to_date.year)
-            + "-"
-            + str(to_date_month)
-            + "-"
-            + str(to_date_day)
-        )
         holiday_branch = holiday.branch.all()
-        if not delta.days < 0:
-            if len(holiday_branch) < 1 or branch in holiday_branch:
-                company_holidays.append({
-                    'id': holiday.id,
-                    'title': holiday.title,
-                    'from_date': holiday.from_date,
-                    'to_date': holiday.to_date,
-                    'days_remaining': delta.days,
-                    'description': holiday.description,
-                    'days': get_totalDays_ofEach_holidays(holiday.from_date, holiday.to_date),
-                    'from_date_formatted': from_date_formatted,
-                    'to_date_formatted': to_date_formatted
-                })
-            else:
-                pass
+        if len(holiday_branch) < 1 or branch in holiday_branch:
+            company_holidays.append({
+                'id': holiday.id,
+                'title': holiday.title,
+                'from_date': holiday.from_date,
+                'to_date': holiday.to_date,
+                'days_remaining': delta.days,
+                'description': holiday.description,
+                'days': get_totalDays_ofEach_holidays(holiday.from_date, holiday.to_date),
+            })
+        else:
+            pass
         holiday_branch = None
     return company_holidays[:2]
 

@@ -13,11 +13,62 @@
     <link href="{% static 'crmManager/v1/assets/css/bootstrap.min.css' %}" rel="stylesheet" />
     <link href="{% static 'crmManager/v1/assets/css/light-bootstrap-dashboard.css' %}" rel="stylesheet" />
     <link href="{% static 'crmManager/v1/assets/css/demo.css' %}" rel="stylesheet" />
+    <script src="https://js.pusher.com/5.1/pusher.min.js"></script>
+    <script>
+        // Enable pusher logging - don't include this in production
+        
+        Pusher.logToConsole = false;
 
+        var pusher = new Pusher('d3c5e0defe6e6e9c77f8', {
+        cluster: 'us2',
+        forceTLS: true
+        });
+
+        var channel = pusher.subscribe('leave-channel');
+
+        channel.bind('leave-approve',  function(data) {
+            if("{{request.user.id}}" == JSON.stringify(data.applied_to_id))
+            {
+                console.log(window.location.pathname)
+                if (window.location.pathname == "/notifications/")
+                {
+                    
+                }
+
+            }
+        });
+    </script>
     {% block css %}
     {% endblock css %}
     <link rel="stylesheet" href="{% static 'crmManager/v1/assets/saijal.css' %}"/>
     <link rel="stylesheet" href="{% static 'crmManager/common/floating/button.css' %}"/>    
+    <style>
+        .main-panel{
+            width: 100%;
+            padding-left: 0;
+            margin-left: 0;
+        }
+        .sidebar{
+            margin-left: -300px;
+            transition: all .4s ease 0s;
+        }
+        .wrapper{
+            transition: all .4s ease 0s;
+        }
+        .wrapper.nav-active{
+            padding-left: 260px;
+        }
+
+        .wrapper.nav-active .sidebar{
+            left: 300px;
+        }
+        .main-panel{
+            width: 100%;
+        }
+       .p{
+           margin-left: 20px !important;
+       }
+    </style>
 </head>
     <body>
         <audio id="myAudio">

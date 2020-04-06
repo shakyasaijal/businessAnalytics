@@ -13,9 +13,5 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('', views.index, name="index"),
-    path('login', views.login_view, name="login_view"),
-    path('login-controller', views.login_controller, name="login_controller"),
-    path('crm/', include('crmManager.urls')),
-    path('notifications/', include('notifications.urls'))
+    path('', views.notifications, name="notifications"),
 ]

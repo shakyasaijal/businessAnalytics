@@ -2,27 +2,124 @@
 {% load static %}
 
 {% block css %}
-{% if data_failed %}
-<style>
-    .card .table tbody td:last-child, .card .table thead th:last-child {
-        padding-right: 15px;
-        display: block;
-    }
-</style>
-{% endif %}
 {% endblock css %}
 
 {% block content %}
     {% if messages %}
         {% include "sysManager/v1/partials/notification.html" %}
     {% endif %}
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{% url 'crm_index' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'lms_index' %}">Leave Management System</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Leave Requests</li>
-        </ol>
-    </nav>
+
+    
+    <div class="tab">
+        {% for leave in leave_requests %}
+            <button class="tablinks leaves-flex leave{{leave.id}}" onclick="openCity(event, 'leave{{leave.id}}')" {% if forloop.first %} id="defaultOpen" {% endif %}>
+                <div class="leave-img-container">
+                    <img src="{{leave.picture}}" alt="{{leave.full_name}}">
+                </div>
+                <div class="leave-name">
+                <p>{{leave.full_name}}</p>
+                </div>
+                <div class="leave-days">
+                    {{leave.total_days}} Days
+                </div>
+            </button>
+        {% endfor %}
+    </div>
+
+    {% for leave in leave_requests %}
+        <div id="leave{{leave.id}}" class="tabcontent">
+            <h3>{{leave.full_name}} has applied {% if leave.half_day %} Half Leave {% else %} leave {% endif %} of {% if leave.total_days < 1 %} a day. {% else %} {{leave.total_days}} days.{% endif %}</h3>
+                <div class="leave-description">
+                    <div class="leave-desc">
+                        <label>Leave Reason</label>
+                        <p>{{leave.leave_reason}}</p>
+                    </div>
+                </div>
+                <div class="leave-days">
+                    <div class="leave__">
+                        <div class="days">
+                            <h3>{% if leave.total_days < 1 %}Half{% else %}{{leave.total_days}}{% endif %}</h3>
+                            <p>Total Days</p>
+                        </div>
+                        <div class="from">
+                            <h4><b>{{leave.from_date}} - {{leave.to_date}}</b></h4>
+                        </div>
+                    </div>
+                    <div class="short-leave">
+                        <table class="table table-striped table-sm table-hover">
+                            <tbody>
+                                <tr>
+                                    <td>Leave Type</td>
+                                    <td>{{leave.leave_type}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Leave For</td>
+                                    <td>{% if leave.half_day %} Half {% else %} Full {% endif %} Day Leave</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% if leave.leave_on_holiday %}
+                <div class="card-body">
+                    {{leave.leave_on_holiday_reason}} So, {{leave.leave_on_holiday}}{% if leave.leave_on_holiday < 2 %} day  {% else %}days{% endif %} {% if leave.half_day %} (since half leave) {% endif %} is not declared and not deducted.
+                </div>
+                {% endif %}
+                <div class="approve-leave">
+                    <form method="POST" action="{% url 'approve_leave' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="lms_id" value="{{leave.id}}"/>
+                        <button type="submit" class="btn btn-success btn-lg">Approve</button>
+                    </form>
+                </div>
+                <div class="reject-leave">
+                    <form method="POST" action="{% url 'reject_leave' %}">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-10">
+                                <textarea rows="5" col="5" class="form-control" name="reject_reason" placeholder="Reject Reason" required></textarea>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="hidden" name="lms_id" value="{{leave.id}}"/>
+                                <button class="btn btn-danger" type="submit">Reject</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+        </div>
+    {% endfor %}
+{% endblock content %}
+
+{% block js %}
+
+{% if a %}
+<script>
+    document.getElementsByClassName(".leave{{a}}")[0].click();
+</script>
+{% endif %}
+
+<script>
+
+    function openCity(evt, cityName) {
+      var i, tabcontent, tablinks;
+      tabcontent = document.getElementsByClassName("tabcontent");
+      for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+      }
+      tablinks = document.getElementsByClassName("tablinks");
+      for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+      }
+      document.getElementById(cityName).style.display = "block";
+      evt.currentTarget.className += " active";
+    }
+    
+    // Get the element with id="defaultOpen" and click on it
+    document.getElementById("defaultOpen").click();
+    </script>
+
+{% endblock js %}
+
 
 {% for leave in leave_requests %}
 <!-- Modal: Leave Details -->
@@ -30,7 +127,7 @@
     <div class="modal-dialog" role="document">  
         <form class="modal-content" method="POST" action="">
             <div class="modal-header text-center">
-                <h6 class="modal-title w-100 font-weight-bold">{% if leave.half_day %} Half Leave for {{leave.multiplied}} {% if leave.multiplied < 2 %} day {% else %} days {% endif %} {% else %} {{leave.total_days}} {% if leave.total_days < 2 %} day {% else %} days {% endif %}  of Full Leave {% endif %}</h6>
+                <h4 class="modal-title w-100 font-weight-bold mt0">{% if leave.half_day %} Half Leave for {{leave.multiplied}} {% if leave.multiplied < 2 %} day {% else %} days {% endif %} {% else %} {{leave.total_days}} {% if leave.total_days < 2 %} day {% else %} days {% endif %}  of Full Leave {% endif %}</h4>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -40,7 +137,7 @@
                     <div class="col-md-4">
                         <div class="modal-img-c">
                             <img src="{{leave.picture}}" alt="{{leave.full_name}}">
-                            <label>{{leave.full_name}}</label>
+                            <p>{{leave.full_name}</p>
                         </div>
                     </div>
                     <div class="col-md-8">
@@ -58,15 +155,12 @@
                         <div class="jumbotron flex text-center" style="padding:6px; margin:0">
                             <div class="w30" style="border-right:1px solid burlywood">
                                 <h2> {% if leave.total_days < 1 %}Half{% else %}{{leave.total_days}}{% endif %}</h2>
-                                <span><b>DAYS</b></span>
+                                <span><b>Total Days</b></span>
                             </div>
                             <div class="w70">
                                 <p class="center-all">{{leave.from_date}} - {{leave.to_date}}
-                                    {% if leave.leave_on_holiday %}
-                                    <br/>
-                                    <br/>
-                                    {{leave.leave_on_holiday_reason}} So, {{leave.leave_on_holiday}}{% if leave.leave_on_holiday < 2 %} day  {% else %}days{% endif %} {% if leave.half_day %} (since half leave) {% endif %} is not declared.
-                                    {% endif %}
+                                    {% if leave.half_day %} (Half Day) {% endif %}
+                                    
                                 </p>
                                 
                             </div>
@@ -127,7 +221,3 @@
     {% else %}
     <p>No Leave Request...</p>
     {% endif %}
-{% endblock content %}
-
-{% block js %}
-{% endblock js %}

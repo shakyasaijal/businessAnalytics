@@ -1,0 +1,269 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+<style>
+    .flex-conf{
+        display: flex;
+        flex-wrap: wrap;
+        padding: 20px 0px;
+        flex-direction: row;
+    }
+    .flex-conf:not(:last-child){
+        border-bottom: 1px outset;
+
+    }
+   .flex-title{
+       width: 30%;
+   }
+   .flex-progress{
+       width: 70%;
+   }
+</style>
+{% endblock css %}
+
+{% block content %}
+{% if messages %}
+    {% include "sysManager/v1/partials/notification.html" %}
+{% endif %}
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card card-user">
+                <div class="card-image">
+                    <img src="{% static 'crmManager/common/sky.jpg' %}" alt="...">
+                </div>
+                <div class="card-body">
+                    <div class="author">
+                        <a href="{{emp_data.pic}}">
+                            <img class="avatar border-gray back-white" src="{{emp.picture.url}}" alt="...">
+                            <h5 class="title">{{request.user.get_full_name}}</h5>
+                            <b>Contact: {{emp.contact}}</b>
+                        </a>
+                        <p class="description">
+                            {{emp.username}}
+                        </p>
+                    </div>
+                    <p class="description text-center">
+                       
+                        {% if emp.pan_document %}
+                            <br/><a href="{{emp.pan_document.url}}" class="btn btn-sm btn-success">PAN Document</a>
+                        {% endif %}
+                    </p>
+                </div>
+                <hr>
+                <div class="button-container mr-auto ml-auto">
+                    <button href="#" class="btn btn-simple btn-link btn-icon">
+                        <i class="fa fa-facebook-square"></i>
+                    </button>
+                    <button href="#" class="btn btn-simple btn-link btn-icon">
+                        <i class="fa fa-twitter"></i>
+                    </button>
+                    <button href="#" class="btn btn-simple btn-link btn-icon">
+                        <i class="fa fa-google-plus-square"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card strpied-tabled-with-hover">
+                <div class="card-header ">
+                    <h4 class="card-title">Authorization</h4>
+                    <p class="card-category"></p>
+                </div>
+                <div class="card-body table-full-width table-responsive table-min-height">
+                    <table class="table table-hover table-striped table-sm">
+                        <thead>
+                            <th>Title</th>
+                            <th>Access/As</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>HRM</td>
+                                <td>{{hrm_access}}</td>
+                            </tr>
+                            <tr>
+                                <td>LMS</td>
+                                <td>{{hrm_access}}</td>
+                            </tr>
+                            <tr>
+                                <td>Inventory</td>
+                                <td>{{hrm_access}}</td>
+                            </tr>
+                            <tr>
+                                <td>HRM</td>
+                                <td>{{hrm_access}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <div class="card strpied-tabled-with-hover">
+                <div class="card-header ">
+                    <h4 class="card-title">Salary Information</h4>
+                    <p class="card-category">Old and Current</p>
+                </div>
+                <div class="card-body table-full-width table-responsive table-m-height">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <th>ID</th>
+                            <th>Salary</th>
+                            <th>Month</th>
+                        </thead>
+                        <tbody>
+                            {% for data in salary_info %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>{{data.salary}}</td>
+                                    <td>{{data.month}}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card saijal-card">
+                <div class="card-header">
+                PERSONAL DETAILS
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input type="text" class="form-control" value="{{request.user.username}}" disabled="">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>First Name</label>
+                                    <input type="text" class="form-control" value="{{request.user.first_name}}" disabled="">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Last Name</label>
+                                    <input type="text" class="form-control" value="{{request.user.last_name}}" disabled="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input type="email" class="form-control" value="{{request.user.email}}" disabled="">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Date of birth</label>
+                                    <input type="text" class="form-control" value="{{emp.date_of_birth|date:'d-M-Y'}}" disabled="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md 12">
+                                <div class="form-group">
+                                    <label>Address</label>
+                                    <input type="text" class="form-control" value="{{emp.address}}" disabled="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Department</label><br/>
+                                    <select name="department" multiple>
+                                        {% for data in all_departments %}
+                                            <option {% if data.status %} selected {% endif %}>{{data.data}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Branches</label>
+                                    <select name="branches" multiple >
+                                        {% for data in all_branches %}
+                                            <option {% if data.status %} selected {% endif %}>{{data.data}}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>User Type</label>
+                                    <br/>
+                                    {% for data in user_type %}
+                                        <input type="checkbox" name="user_type[]" value="{{data.data}}" {% if data.status %} checked {% endif %}>{{data.data}}</option>
+                                        {% if not forloop.last %} <br/>{% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card saijal-card">
+                <div class="card-header">
+                CONFIDENTIALS
+                </div>
+                <div class="card-body">
+                    {% if leave_per %}
+                        {% for data in leave_per %}
+                            <div class="flex-conf">
+                                <div class="flex-title">
+                                    {{data.name}} <br/>({{data.per_year}} days per year)
+                                </div>
+                                <div class="flex-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"  aria-valuemin="0" aria-valuemax="100" style="width: {{data.percentage_remaining}}%">{{data.percentage_remaining|floatformat:'2'}}%</div>
+                                    </div>
+                                    <div class="ro">
+                                        {{data.remaining}} days remaining out of {{data.per_year}} days
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card saijal-card">
+                <div class="card-header">
+                Payroll
+                </div>
+                <div class="card-body">
+                    {% if leave_per %}
+                        {% for data in leave_per %}
+                            <div class="flex-conf">
+                                <div class="flex-title">
+                                    {{data.name}} <br/>({{data.per_year}} days per year)
+                                </div>
+                                <div class="flex-progress">
+                                    <div class="progress">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"  aria-valuemin="0" aria-valuemax="100" style="width: {{data.percentage_remaining}}%">{{data.percentage_remaining|floatformat:'2'}}%</div>
+                                    </div>
+                                    <div class="ro">
+                                        {{data.remaining}} days remaining out of {{data.per_year}} days
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

@@ -19,7 +19,6 @@ urlpatterns = [
     path('<slug:slug>/', views.crm_branch, name="crm_branch"),
     path('weather/', views.weather, name="weather"),
     path('help-and-support/', views.help_support, name="help_support"),
-
-
+    path('profile', views.profile, name="user-profile"),
     path('get-notification', views.get_notification, name="get_notification")
 ]

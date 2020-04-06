@@ -15,5 +15,7 @@ from . import views
 urlpatterns = [
     path('', views.lms_index, name="lms_index"),
     path('apply-leave', views.apply_leave, name="lms_apply_leave"),
-    path('leave-requests', views.get_leave_requests, name="get_leave_requests")
+    path('leave-requests', views.get_leave_requests, name="get_leave_requests"),
+    path('accept-leave', views.approve_leave, name="approve_leave"),
+    path('reject-leave', views.reject_leave, name="reject_leave"),
 ]
