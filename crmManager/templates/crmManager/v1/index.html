@@ -20,30 +20,76 @@
 {% endif %}
     <div class="row">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">New Employees</h4>
-                </div>
-                <div class="card-body">
-                    {% if new_employee %}
-                    <div class="owl-carousel">
-                        {% for data in new_employee %}
-                            <div>
-                                {% if data.picture.url %}
-                                    <img src="{{data.picture.url}}"/>
-                                {% else %}
-                                    <img src="https://picsum.photos/200/200"/>
-                                {% endif %}
-                                <div class="text-center">
-                                    <div>{{data.user.get_full_name}}</div>
-                                    <small>{{data.user.date_joined | date:"d, M,Y" }}</small>
-                                </div>
-                            </div>
-                        {% endfor %}
+            {% if new_employee %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">New Employees</h4>
                     </div>
-                    {% endif %}
+                    <div class="card-body">
+                        <div class="owl-carousel">
+                            {% for data in new_employee %}
+                                <div>
+                                    {% if data.picture.url %}
+                                        <img src="{{data.picture.url}}"/>
+                                    {% else %}
+                                        <img src="https://picsum.photos/200/200"/>
+                                    {% endif %}
+                                    <div class="text-center">
+                                        <div>{{data.user.get_full_name}}</div>
+                                        <small>{{data.user.date_joined | date:"d, M,Y" }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
-            </div>
+            {% endif %}
+
+            {% if leaves_today %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">On Leave</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="owl-carousel">
+                            {% for data in leaves_today %}
+                                <div>
+                                    {% if data.image %}
+                                        <img src="{{data.image}}"/>
+                                    {% else %}
+                                        <img src="{% static 'crmManager/common/no-photo.png' %}"/>
+                                    {% endif %}
+                                    <div class="text-center">
+                                        <div>{{data.full_name}}</div>
+                                        <small>{{data.half_day }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if upcoming_bday %}
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title">Birthdays</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="owl-carousel">
+                            {% for data in upcoming_bday %}
+                                <div>
+                                    <img src="{{data.image}}"/>
+                                    <div class="text-center">
+                                        {{data.full_name}}<br/>
+                                        <small>{% if data.remaining == 0 %} Today {% elif data.remaining == 1 %} 1 day left {% else %} {{data.remaining}} days left {% endif %}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
         <div class="col-md-4">
             <div class="card">
@@ -81,34 +127,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">Birthdays</h4>
-                </div>
-                <div class="card-body">
-                    {% if upcoming_bday %}
-                    <div class="owl-carousel">
-                        {% for data in upcoming_bday %}
-                            <div>
-                                <img src="{{data.image}}"/>
-                                <div class="text-center">
-                                    {{data.full_name}}<br/>
-                                    <small>{% if data.remaining == 0 %} Today {% elif data.remaining == 1 %} 1 day left {% else %} {{data.remaining}} days left {% endif %}</small>
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                        No Birthday/Upcoming Birthday
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">Upcoming Holidays <a href="{% url 'add_holidays' %}" class="pull-right"><i class="fa fa-plus"></i></a> </h4>
@@ -154,7 +172,7 @@
         $(".owl-carousel").owlCarousel({
             center: false,
             items:2,
-            loop:false,
+            loop:true,
             margin:20,
             autoplay: true,
             autoplayTimeout:2000,
@@ -172,7 +190,7 @@
                 1000:{
                     items:3,
                     nav:false,
-                    loop:false
+                    loop:true
                 }
             }
         });

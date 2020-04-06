@@ -5,6 +5,7 @@ from lms_user import models as lms_user_models
 from services import models as services_model
 from employee import models as employee_models
 from notifications import models as notification_models
+from leave_manager.common import leave_manager  
 
 
 def leaves_percentage(lms_user):
@@ -23,3 +24,5 @@ def leaves_percentage(lms_user):
             "percentage_remaining": diff
         })
     return data
+
+

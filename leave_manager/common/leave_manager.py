@@ -186,28 +186,26 @@ def get_leave_requests(request):
         return pending_leave_requests
 
 
-def get_leave_today():
+def get_leave_today(branch):
     leaves_today = []
-    for leave_request in Leave.objects.filter(from_date__lte=datetime.today(), to_date__gte=datetime.today(),
+    for leave_request in leave_models.Leave.objects.filter(from_date__lte=datetime.today(), to_date__gte=datetime.today(),
                                               leave_pending=False, leave_approved=True):
 
-        try:
-            image = leave_request.user.image.url.split('/static/')[1]
-        except Exception as e:
-            print(e)
-            image = '/lms_user/images/photograph.png'
-
-        leaves_today.append({
-            'id': leave_request.id,
-            'full_name': leave_request.user.user.get_full_name(),
-            'image': image,
-            'department': leave_request.user.department.department,
-            'from_date': str(leave_request.from_date),
-            'to_date': str(leave_request.to_date),
-            'leave_type': leave_request.type.type,
-            'leave_reason': leave_request.reason,
-            'half_day': leave_request.half_day,
-        })
+        if branch in leave_request.user.employee.branch.all():
+            try:
+                image = leave_request.user.employee.picture.url
+            except Exception as e:
+                print(e)
+                image = ''
+            half_day = "Full Day"
+            if leave_request.half_day:
+                half_day = "Half Day"
+            leaves_today.append({
+                'id': leave_request.id,
+                'full_name': leave_request.user.employee.user.get_full_name(),
+                'image': image,
+                'half_day': half_day,
+            })
     return leaves_today
 
 

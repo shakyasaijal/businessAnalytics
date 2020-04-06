@@ -106,10 +106,12 @@ def crm_branch(request, slug):
         cache.set('crm_branch_slug', branch.slug, timeout=CACHE_MAX_TTL)
 
         employees = helper_manager.get_new_employee_by_branch(branch)
+        leaves_today = leave_manager.get_leave_today(branch)
         context = {}
         context.update({"new_employee": employees})
         context.update({"holiday_crud": holiday_crud})
         context.update({"current_branch": branch})
+        context.update({"leaves_today": leaves_today})
         weather_ = ''
         if 'weather' in cache:
             context.update({"weather_data":cache.get('weather')})
@@ -324,4 +326,3 @@ def notification_count(request):
     except (Exception, employee_models.Employee.DoesNotExist) as e:
         print("Context 1 ",e)
         return count
-        
