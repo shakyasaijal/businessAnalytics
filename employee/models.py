@@ -51,6 +51,9 @@ class Employee(models.Model):
     fcm_token = models.CharField(max_length=255, null=True, blank=True)
     created_on = models.DateTimeField(auto_now_add=True)
 
+    # For Navigation and Data Filtering by branch
+    current_branch = models.ForeignKey(support_models.Branches, null=True, blank=True)
+
     def __str__(self):
         return self.user.get_full_name()
 

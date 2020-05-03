@@ -23,3 +23,4 @@ class LmsUser(models.Model):
             leave_issuer = self.employee.staff_head.user.get_full_name()
         return leave_issuer
         
+        

@@ -268,3 +268,35 @@ def reject_leave(request):
     else:
         messages.error(request, 'Method not allowed. Please try again. Thank You')
         return HttpResponseRedirect(reverse('lms_index'))
+
+
+@login_required
+def generate_report(request):
+    if not manager.has_lms_access(request.user)[1]:
+        messages.error(request, "Sorry. You do not have permission for LMS. Please contact your authority.")
+        return HttpResponseRedirect(reverse('crm_index'))
+
+    if not check_leave_admin.is_leave_issuer(request.user):
+        messages.error(request, "Sorry. You do not have permission.")
+        return HttpResponseRedirect(reverse('lms_index'))
+
+    context = {}
+    
+    if request.method == "POST":
+        from_date = datetime.datetime.strptime(
+            request.POST["from_date"], "%Y-%m-%d"
+        ).date()
+        to_date = datetime.datetime.strptime(request.POST["to_date"], "%Y-%m-%d").date()
+        leave_list = leave_manager.get_users_leaveDetailFor_searchEngine(
+            request.user, from_date, to_date
+        )
+        if leave_list == {}:
+            context.update({"reports": " "})
+        else:
+            context.update({"reports": sorted(leave_list.items())})
+        context.update({"from_date": from_date})
+        context.update({"to_date": to_date})
+        return render(request, "leave_manager/"+template_version+"/leave-report.html", context)
+
+    else:
+        return render(request, "leave_manager/"+template_version+"/leave-report.html", context)

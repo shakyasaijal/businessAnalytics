@@ -113,12 +113,12 @@ def crm_branch(request, slug):
         context.update({"current_branch": branch})
         context.update({"leaves_today": leaves_today})
         weather_ = ''
-        if 'weather' in cache:
-            context.update({"weather_data":cache.get('weather')})
-        else:
-            weather_data = get_weather_data()
-            cache.set('weather', weather_data[0], timeout = CACHE_TTL)
-            context.update({"weather_data":weather_data[0]})
+        # if 'weather' in cache:
+        #     context.update({"weather_data":cache.get('weather')})
+        # else:
+        #     weather_data = get_weather_data()
+        #     cache.set('weather', weather_data[0], timeout = CACHE_TTL)
+        #     context.update({"weather_data":weather_data[0]})
 
         upcoming_bday = users.get_birthday_today(branch)["upcoming"]
         context.update({"upcoming_bday": upcoming_bday})

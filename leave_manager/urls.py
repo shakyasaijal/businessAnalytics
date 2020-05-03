@@ -18,4 +18,5 @@ urlpatterns = [
     path('leave-requests', views.get_leave_requests, name="get_leave_requests"),
     path('accept-leave', views.approve_leave, name="approve_leave"),
     path('reject-leave', views.reject_leave, name="reject_leave"),
+    path('generate-report', views.generate_report, name="generate-report")
 ]

@@ -1,0 +1,61 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% if data_failed %}
+<style>
+    .card .table tbody td:last-child, .card .table thead th:last-child {
+        padding-right: 15px;
+        display: block;
+    }
+</style>
+{% endif %}
+{% endblock css %}
+
+{% block content %}
+    {% if messages %}
+        {% include "sysManager/v1/partials/notification.html" %}
+    {% endif %}
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'crm_index' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'lms_index' %}">Leave Management System</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Generate Report</li>
+        </ol>
+    </nav>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="card-header">
+                        <h4 class="card-title">Generate Report of All Employees</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>From Date</label>
+                                    <input type="date" name="from_date" class="form-control">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="exampleInputEmail1">To Date</label>
+                                    <input type="date" name="to_date" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-success btn-sm">GENERATE</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+    </div>
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}

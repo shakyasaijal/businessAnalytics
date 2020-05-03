@@ -776,18 +776,12 @@ def get_users_leaveDetailFor_searchEngine(my_leave_approvees, from_date, to_date
         Return
         -------------------------------------------------
         It returns list of user excluding duplicated user
-
     """
     leave_issuer = LmsUser.objects.filter(leave_issuer=my_leave_approvees)
     name_list = {}
     total_days = 0
-    for leave in Leave.objects.order_by("-id").filter(user__in=leave_issuer, from_date__gte=from_date, to_date__lte=to_date, leave_approved=True):
+    for leave in Leave.objects.order_by("-id").filter(user__in=leave_issuer, from_date__gte=from_date, to_date__lte=to_date):
         print(leave)
-        leave_multiplier = 1
-        if leave.half_day:
-            leave_multiplier = 0.5
-        total_days = ((leave.to_date - leave.from_date).days +
-                      1) * leave_multiplier
 
         if leave.user.user.get_full_name() in name_list:
             name_list[leave.user.user.get_full_name()] = {
