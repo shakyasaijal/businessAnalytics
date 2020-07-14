@@ -11,7 +11,6 @@ Contact: https://saijalshakya.com.np
 '''
 import os
 import yaml
-
 credentials = yaml.load(open('credentials.yaml'), Loader=yaml.FullLoader)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,16 +20,30 @@ DEBUG = credentials['debug']
 ALLOWED_HOSTS = credentials['allowed_host']
 
 INSTALLED_APPS = [
+    'crmManager',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'debug_toolbar',
     'ckeditor',
     'ckeditor_uploader',
+    'services',
+    'inventory',
+    'leave_manager',
+    'employee',
+    'lms_user',
+    'sysManager',
+    'support',
+    'hrm',
+    'notifications',
+    'management'
 ]
+
 CKEDITOR_UPLOAD_PATH = "uploads/"
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -39,6 +52,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    # ...
+    '127.0.0.1',
+    # ...
 ]
 
 ROOT_URLCONF = 'businessAnalytics.urls'
@@ -54,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'crmManager.context_processor.common',
             ],
         },
     },
@@ -70,6 +91,21 @@ DATABASES = {
         'PORT': credentials['db_port']
     }
 }
+
+CACHES = {
+    "default": {
+        "BACKEND": credentials['cache_backend'],
+        "LOCATION": credentials['cache_location'],
+        "OPTIONS": {
+            "CLIENT_CLASS": credentials['client_class']
+        },
+        "KEY_PREFIX": credentials['key_prefix']
+    }
+}
+
+CACHE_TTL = 60 * 0.5      # 15 minute
+CACHE_MAX_TTL = 60 * 60  # 1 hour
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -86,13 +122,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'en-us'
-
+LOGIN_URL = "/login"
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_L10N = True
-
 USE_TZ = True
 
 STATIC_URL = '/static/'
@@ -108,3 +141,4 @@ EMAIL_HOST_USER = credentials['_email']
 EMAIL_HOST_PASSWORD = credentials['_password']
 EMAIL_PORT = credentials['smtp_port']
 EMAIL_USE_SSL = credentials['EMAIL_USE_SSL']
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

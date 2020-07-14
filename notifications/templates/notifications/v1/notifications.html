@@ -1,0 +1,61 @@
+{% extends 'crmManager/v1/partials/base.html' %}
+{% load static %}
+
+{% block css %}
+{% if data_failed %}
+<style>
+    .card .table tbody td:last-child, .card .table thead th:last-child {
+        padding-right: 15px;
+        display: block;
+    }
+</style>
+{% endif %}
+{% endblock css %}
+
+{% block content %}
+    {% if messages %}
+        {% include "sysManager/v1/partials/notification.html" %}
+    {% endif %}
+    {% if data %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card card-default">
+                    <div class="card-header">
+                      <h3 class="card-title">
+                        <i class="fa fa-warning mr-16"></i>Notifications
+                      </h3>
+                    </div>
+                    <!-- /.card-header -->
+                    <div class="card-body">
+                        <div class="flex-notification">
+                            {% for d in data %}
+                                <div {% if d.is_read %} class='grid-notification' {% else %} class='grid-notification unread' {% endif %}>
+                                    <div class="notification-symbol">
+                                        <a href="/">
+                                            <div class="symbol-container">
+                                                <img src="{{d.symbol}}" alt="">
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="notification">
+                                        <a {% if d.url %} href="{{d.url}}" {%else%}href="#!" {% endif %}>
+                                            <p>{{d.text | truncatewords:'10'}}</p>
+                                            {% if d.branch %}<small><b>For Branch:</b> {% for b in d.branch %} {{b}}{% if not forloop.last %}, {% endif %}{% endfor %}</small><br/>{% endif %}
+                                            <small>{{d.date}}</small>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <!-- /.card-body -->
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <h3>No Notifications Yet.</h3>
+    {% endif %}
+{% endblock content %}
+
+{% block js %}
+{% endblock js %}
