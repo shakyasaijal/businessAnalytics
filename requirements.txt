@@ -1,6 +1,6 @@
 django==3.0.7
 autopep8==1.5
-PyYAML==5.3
+PyYAML==5.4
 Pillow==7.0.0
 mysqlclient==1.4.6
 django-ckeditor==5.9.0
